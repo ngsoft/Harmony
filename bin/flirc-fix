@@ -1,0 +1,47 @@
+#!/bin/bash
+# 
+# Uses flirc_util to kick out flirc device of dfu (bootloader) mode
+#
+
+. $(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd && popd > /dev/null 2>&1)/hmy-utils
+
+cmd which flirc_util || throw_error "Cannot find flirc_util goto: https://flirc.tv/downloads"
+
+#
+# Get Flirc current status 
+# return $? = 1 : disconnected
+# return $? = 2 : Booloader (typo)
+# return $? = 0 : connected
+#
+get_status(){
+    flircstatus=$(flirc_util sku 2> /dev/null)
+    echo $flircstatus | grep "disconnected" > /dev/null 2>&1 
+    [ $? == 0 ] && return 1
+    echo $flircstatus | grep "flirc" > /dev/null 2>&1 
+    [ $? != 0 ] && return 2
+    return 0
+}
+
+fix_dfu(){
+    flirc_util dfu leave | grep "FW Detected" > /dev/null 2>&1
+    return $?
+}
+
+
+get_status
+case "$?" in
+    1)
+        throw_error "Flirc is disconnected, please try to plug it in."
+    ;;
+    2)
+        echo "Flirc in bootloader mode : trying to put it in normal operation mode."
+        fix_dfu || throw_error "Cannot put flirc into normal operation mode"
+        get_status || throw_error "An error has occured."
+        echo "Flirc is now connected."
+        exit 0
+    ;;
+    *)
+        echo "Flirc is connected."
+    ;;
+esac
+exit 0
