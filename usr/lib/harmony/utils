@@ -1,0 +1,107 @@
+#!/bin/bash
+
+#
+# Executes given command 
+# and hides output
+#
+cmd(){
+    $@ >/dev/null 2>&1
+	return $?
+}
+##
+# Fake process
+##
+noop(){
+    return 0
+}
+
+#
+# Display error message to stderr and exit
+#
+throw_error(){
+    >&2 echo "$@"
+    exit 1
+}
+
+#
+# Log a message into a declared $logfile
+#
+log(){
+    [[ -z "$logfile" ]] && logfile=/dev/null
+    [[ -n "$@" ]] &&  echo "$(date) | $@" >> $logfile
+}
+
+#
+# Check if a process is running
+#
+is_running(){
+    [[ -z $1 ]] && return 2
+    cmd pidof -x "$1"
+    return $?
+}
+
+#
+# Get Count of running instances of a process
+#
+count_process(){
+    cnt=
+    for _p in $(pidof -x "$1"); do
+        ((cnt++))
+    done
+    [[ -z $cnt ]] && cnt=0
+    return $cnt
+}
+
+
+#
+# Search for process pids (if any) and kills them
+#
+kill_process(){
+    [[ -z $1 ]] && return 1
+    pids=$(pidof -x $1)
+    [[ -z $pids ]] && return 0
+    for _pid in $pids; do
+        cmd kill $_pid
+    done
+}
+
+#
+# Uses Ubuntu Notification system to notify the user
+# and logs the message
+# [BODY] <ICON>
+#
+
+notify(){
+    icon=$prefix/usr/share/icons/hicolor/48x48/apps/harmony.png
+    [[ -n $2 ]] && icon=$2
+    [[ -z $1 ]] && return 1
+    log $1
+    notify-send "$1" -i "$icon" &
+    return 0
+}
+
+#
+# Finds flirc device and display its path
+#
+get_device(){
+    cat /proc/bus/input/devices | grep "flirc" > /dev/null 2>&1
+    [ $? -eq 0 ] || return 1
+    _dev=$(find /dev/input/ | grep flirc)
+    [ $? -eq 0 ] || return 1
+    printf "$_dev"
+}
+
+#
+# Finds the device name
+#
+get_device_name(){
+    xinput list --name-only | grep "flirc"
+}
+
+
+#
+# Get Harmony app Prefix
+#
+get_prefix(){
+    dirname "$(dirname "$(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd && popd > /dev/null 2>&1)")"
+}
