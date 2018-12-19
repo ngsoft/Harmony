@@ -4,6 +4,7 @@ prefix=$(dirname "$(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd
 logfile="/tmp/$(basename ${BASH_SOURCE[0]}).log"
 description="Harmony Remote Daemon"
 OVERRIDE=no
+binaries="harmony hrmy hrmy-send"
 
 if [ ! -e $prefix/usr/lib/harmony/utils ]; then
     echo "$(basename ${BASH_SOURCE[0]}) cannot find libraries." >&2
@@ -16,13 +17,15 @@ fi
 # install_service <filename> <name>
 #
 install_service(){
+    local name
     [ -n "$1" ] || [ -x "$1" ] ||  return 1
     name=$2
     [ -n "$name" ] || name=$(basename $1)
     [ -e "/etc/init.d/$name" ] && return 2
     cmd ln -s $1 /etc/init.d/$name
-    cmd systemctl unmask $name
     cmd update-rc.d $name defaults
+    enable_services $name
+    cmd service $name start
 }
 
 
@@ -49,17 +52,29 @@ install_deps(){
     add-apt-repository -y -u ppa:leamas-alec/lirc-0.9.4 >> $logfile 2>&1
     echo "deb [trusted=yes] https://apt.fury.io/flirc/ /" > "/etc/apt/sources.list.d/flirc_fury.list"
     cmd apt-get update 
-    apt-get -y install lirc lirc-x flirc xdotools >> $logfile 2>&1
+    apt-get -y install lirc lirc-x flirc xdotool >> $logfile 2>&1
     test -x /usr/sbin/lircd && return 0
     return 1
 }
 
+#
+# Removes dependencies
+#
+remove_deps(){
+    apt-get -y purge lirc lirc-x inputlirc flirc xdotool >> $logfile 2>&1
+    apt-get -y --purge autoremove >> $logfile 2>&1
+    cmd rm -fr /etc/lirc
+    add-apt-repository -r -y ppa:leamas-alec/lirc-0.9.4 >> $logfile 2>&1
+    cmd rm "/etc/apt/sources.list.d/flirc_fury.list"
+    cmd apt-get update
+}
 
 enable_services(){
-    for act in unmask enable; do
-        for service in $@; do
+    local service act
+    for service in $@; do
+        echo "Enabling $service service."
+        for act in unmask enable; do
             systemctl $act $service >> $logfile 2>&1
-            printf "Enabling $service service.\n"
         done
     done
     cmd systemctl daemon-reload >> $logfile 2>&1
@@ -67,11 +82,13 @@ enable_services(){
 }
 
 disable_services(){
-    for act in disable mask stop; do
-        for service in $@; do
+    local service act
+    for service in $@; do
+        echo "Disabling $service service."
+        for act in stop disable mask; do
             systemctl $act $service >> $logfile 2>&1
-            printf "Disabling $service service.\n"
         done
+        
     done
     cmd systemctl daemon-reload >> $logfile 2>&1
 	cmd systemctl reset-failed >> $logfile 2>&1
@@ -85,10 +102,39 @@ create_cfg_file(){
     echo "device_name=$(get_device_name)" >> /etc/default/harmony
 }
 
+install_binaries(){
+    local bin dest orig
+    for bin in $@; do
+        orig=$prefix/bin/$bin
+        dest=/usr/local/bin/$bin
+        [ -e "$dest" ] || ln -s $orig $dest
+    done
+}
+
+remove_binaries(){
+    local bin dest
+    for bin in $@; do
+        dest=/usr/local/bin/$bin
+        [ -e "$dest" ] && cmd rm $dest
+    done
+}
+
 
 if echo "$@" | grep "\-r" > /dev/null 2>&1; then
-    printf "Removing Harmony Configuration\n"
-
+    if ask "Do you want to remove $description ?" N; then
+        notify "Removing $description, please wait..."
+        echo "Removing /etc/default/harmony"
+        cmd rm /etc/default/harmony
+        remove_binaries $binaries
+        echo "Removing service flirc"
+        remove_service flirc
+        enable_services lircd-setup lircd-uinput lircdm irexec lircd
+        if ask "Do you want to remove dependencies (lirc lirc-x xdotool flirc) ?" Y; then
+            remove_deps
+        fi
+        echo "All done, please reboot."
+        notify "$description, uninstallation complete."
+    fi
     exit 0
 fi
 
@@ -102,13 +148,16 @@ if ask "Do you want to install $description ?" Y; then
     echo "A log file is being created at $logfile";
     cmd rm $logfile
     touch $logfile
-    echo "Installing dependencies, please wait ..."
-    install_deps || throw_error "Cannot install dependencies"
+    if ask "Do you want to install dependencies (lirc lirc-x xdotool flirc) ?" Y; then
+        echo "Installing dependencies, please wait ..."
+        install_deps || throw_error "Cannot install dependencies"
+    fi
     disable_services lircd-setup lircd-uinput lircdm irexec lircd
     echo "Installing service flirc"
     install_service $prefix/etc/init.d/flirc flirc
     echo "Installing configuration file /etc/default/harmony"
     create_cfg_file
+    install_binaries $binaries
     echo "All done, please reboot."
     notify "$description, installation complete."
 fi

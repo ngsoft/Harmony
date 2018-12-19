@@ -95,7 +95,7 @@ is_running(){
 # Get Count of running instances of a process
 #
 count_process(){
-    cnt=
+    local cnt
     for _p in $(pidof -x "$1"); do
         ((cnt++))
     done
@@ -108,6 +108,7 @@ count_process(){
 # Search for process pids (if any) and kills them
 #
 kill_process(){
+    local pids _pid
     [[ -z $1 ]] && return 1
     pids=$(pidof -x $1)
     [[ -z $pids ]] && return 0
@@ -123,6 +124,7 @@ kill_process(){
 #
 
 notify(){
+    local icon
     icon=$prefix/usr/share/icons/hicolor/48x48/apps/harmony.png
     [[ -n $2 ]] && icon=$2
     [[ -z $1 ]] && return 1
@@ -135,7 +137,7 @@ notify(){
 # Finds flirc device and display its path
 #
 get_device(){
-    find /dev/input/ | grep flirc
+    find /dev/input/ | grep "flirc"
     return $?
 }
 
