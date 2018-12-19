@@ -35,10 +35,7 @@ remove_service(){
 	cmd update-rc.d -f $1 remove
 	cmd systemctl stop $1
 	cmd rm /etc/init.d/$1
-	cmd systemctl disable $1
-    cmd systemctl mask $1
-	cmd systemctl daemon-reload
-	cmd systemctl reset-failed
+	disable_services $1
 }
 
 #
@@ -65,6 +62,8 @@ enable_services(){
             printf "Enabling $service service.\n"
         done
     done
+    cmd systemctl daemon-reload >> $logfile 2>&1
+	cmd systemctl reset-failed >> $logfile 2>&1
 }
 
 disable_services(){
@@ -74,6 +73,8 @@ disable_services(){
             printf "Disabling $service service.\n"
         done
     done
+    cmd systemctl daemon-reload >> $logfile 2>&1
+	cmd systemctl reset-failed >> $logfile 2>&1
 }
 
 
@@ -107,5 +108,7 @@ if ask "Do you want to install $description ?" Y; then
     echo "Installing service flirc"
     install_service $prefix/etc/init.d/flirc flirc
     echo "Installing configuration file /etc/default/harmony"
-
+    create_cfg_file
+    echo "All done, please reboot."
+    notify "$description, installation complete."
 fi
