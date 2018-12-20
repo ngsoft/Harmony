@@ -1,22 +1,29 @@
 #!/bin/bash
 #
-# Harmony Remote Daemon
-# Launched by harmony command if not running
+# Harmony Remote Daemon (irexec manager)
+# Launched by harmony command if not running, manages irexec processes and flirc hotswap
+# As flirc service it detects if the usb is plugged in and launch the process when needed
 
+[ $(pgrep -f -c "/bin/bash ${BASH_SOURCE[0]}") != 1 ] && exit 1
 
+# Can be overriden inside < /etc/default/harmony >
+description="Harmony Remote Daemon"
+logfile=/tmp/harmony.log
 
 [ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
 . /etc/default/harmony
 . $prefix/usr/lib/harmony/utils
 
-
 export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
-
-description="Harmony Remote Daemon"
-prog=harmony
 daemon=irexec
-logfile=/tmp/harmony.log
-me=${BASH_SOURCE[0]}
+prog=harmony
 
-pgrep -f -c "/bin/bash $me"
+
+
+
+
+while true; do
+    sleep 1
+    # body
+done

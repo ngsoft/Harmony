@@ -15,13 +15,11 @@
 
 # check if the lirc package is still installed and this not a stale conffile
 test -x /usr/sbin/lircd  || exit 0
-
-name="flirc"
-description="remote control daemon"
-
 test -r /etc/default/harmony || exit 0
 . /etc/default/harmony
 
+name="flirc"
+description="remote control daemon"
 daemon=$prefix/sbin/flirc
 pidfile=/var/run/flirc.pid
 
