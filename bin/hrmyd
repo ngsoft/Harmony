@@ -15,12 +15,21 @@ check_intervals=30
 . /etc/default/harmony
 . $prefix/usr/lib/harmony/utils
 
-export DISPLAY=:0
-export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+pid_pattern="^([0-9]+)$"
 daemon=irexec
 prog=harmony
 sudo=gksu
 flirc=/etc/init.d/flirc
+
+
+irprofiles=$prefix/etc/lirc/irexec.conf.d
+modules=$prefix/etc/$prog/modules
+activities=$prefix/etc/$prog/activities
+#main=$prefix/etc/$prog/main
+
+export DISPLAY=:0
+export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+
 
 do_init(){
     # Check if service is started
@@ -32,11 +41,27 @@ do_init(){
     do_stop
     # Check if remote control is plugged in
     if cmd flirc-fix; then
+        # prevents remote control from sending random
+        # keypresses to the wrong windows (LIRC not grabbing the device as inputlirc)
         xinput disable "$device_name"
+        flirc-load-conf
         do_start
     fi
     
 }
+
+add_pid(){
+    [ -z $1 ] && return 1
+    [[ $1 =~ $pid_pattern ]] || return 1
+    if [ -z $daemonpids ]; then
+        $daemonpids=$1
+        return 0
+    fi
+    $daemonpids="$daemonpids $1"
+}
+
+
+
 
 do_start(){
     noop
