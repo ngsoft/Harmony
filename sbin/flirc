@@ -1,12 +1,14 @@
 #!/bin/bash
-
-lirc=/usr/sbin/lircd
-pidfile=/var/run/flirc.pid
+# Detects if flirc device is connected and 
+# launch LIRC, then if Harmony Daemon is running
+# Notify it
 
 [ -r /etc/default/harmony ] || exit 0
 . /etc/default/harmony
 . $prefix/usr/lib/harmony/utils
 
+lirc=/usr/sbin/lircd
+pidfile=/var/run/flirc.pid
 
 [ "$(id -u)" != "0" ] && throw_error "This script can only be run by root user."
 
@@ -18,50 +20,54 @@ fi
 [ -e $pidfile ] && exit 2
 pgrep -f -n $0 > $pidfile
 
+do_signal(){
+    #sleep 5
+    cmd killall -10 hrmyd
+}
+
+
 do_start(){
     [ -d "/run/lirc" ] || mkdir -p "/run/lirc"
     cmd $lirc -d $device &
     cmd ln -fs /run/lirc/lircd /dev/lircd
+    do_signal &
 }
 
 do_stop(){
-    for pid in $(pidof $lirc); do
-        cmd kill $pid
-    done
+    cmd killall $lirc
+    do_signal &
 }
 
 do_reload(){
-    for pid in $(pidof $lirc); do
-        cmd kill -1 $pid
-    done
+    cmd killall -1 $lirc
 }
 
 
 do_check(){
-    local dev=$(get_device)
-    [ -z "$dev" ] && do_stop && return 1
-    is_running $lirc || do_start
+    if [ -z "$(get_device)" ]; then
+        cmd pidof $lirc && do_stop
+        return 1
+    fi
+    cmd pidof $lirc || do_start
 }
 
 
 do_kill(){
-    is_running $lirc && do_stop
-    rm $pidfile
     exit 0
 }
 
+do_exit(){
+    cmd pidof $lirc && do_stop
+    rm $pidfile
+}
+
 # Starting daemon
+trap do_exit EXIT
 trap do_kill SIGINT SIGTERM SIGQUIT
 trap do_reload SIGHUP
 
-do_check
 
-timer=0
 while true; do
-    if [ $timer -gt 10 ]; then 
-        do_check
-        timer=0
-    fi
-	sleep 1
-    ((timer++))
+    do_check
+	sleep 10
 done

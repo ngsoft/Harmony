@@ -15,7 +15,8 @@ check_intervals=30
 . /etc/default/harmony
 . $prefix/usr/lib/harmony/utils
 
-pid_pattern="^([0-9]+)$"
+
+lirc=/usr/sbin/lircd
 daemon=irexec
 prog=harmony
 sudo=gksu
@@ -29,7 +30,71 @@ activities=$prefix/etc/$prog/activities
 
 export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+export logfile
 
+#
+# Run modules every seconds to perform checks
+# or other things
+#
+run_modules(){
+    local module
+    for module in $modules/*.module; do
+        cmd bash $module &
+    done
+    for module in $activities/*/*.module; do
+        cmd bash $module &
+    done
+}
+
+#
+# Checks if irexec processes are running correctly
+#
+run_checks(){
+    if [ $device_plugged_in == 0 ]; then
+        do_stop
+        return
+    fi
+
+    local pid status
+    for pid in $daemonpids; do
+        cmd ps -p $daemon_pid || status=1
+    done
+    if [ -z $status ]; then
+        do_stop
+        do_start
+    fi
+}
+
+
+
+flirc(){
+    if [ -e $device ]; then
+        notify "Device is connected" "Flirc"
+        device_plugged_in=1
+    else
+        device_plugged_in=0
+        if cmd flirc-fix; then
+            device_plugged_in=1
+            # prevents remote control from sending random
+            # keypresses to the wrong windows (LIRC not grabbing the device as inputlirc)
+            xinput disable "$device_name"
+            flirc-load-conf
+            do_start
+            return
+        fi
+        device_plugged_in=0
+    fi
+}
+
+
+#
+# Checks if Flirc service is running and if remote is plugged in
+# use $check_intervals than can be overriden in < /etc/default/harmony >
+# intervals are in seconds
+#
+check_deps(){
+    noop
+}
 
 do_init(){
     # Check if service is started
@@ -40,43 +105,33 @@ do_init(){
     fi
     do_stop
     # Check if remote control is plugged in
-    if cmd flirc-fix; then
-        # prevents remote control from sending random
-        # keypresses to the wrong windows (LIRC not grabbing the device as inputlirc)
-        xinput disable "$device_name"
-        flirc-load-conf
-        do_start
-    fi
-    
+    flirc
 }
-
-add_pid(){
-    [ -z $1 ] && return 1
-    [[ $1 =~ $pid_pattern ]] || return 1
-    if [ -z $daemonpids ]; then
-        $daemonpids=$1
-        return 0
-    fi
-    $daemonpids="$daemonpids $1"
-}
-
-
 
 
 do_start(){
-    noop
+    local file pid
+    for file in $irprofiles/*.conf; do
+        irexec -n $prog $file &
+        pid=$(pgrep -f -n $daemon)
+        log "Started $daemon $pid"
+        if [ -z $daemonpids ]; then
+            $daemonpids=$pid
+            return 0
+        fi
+        $daemonpids="$daemonpids $pid"
+    fi
+
+    
 }
 
 do_stop(){
     local pid
     for pid in $daemonpids; do
         cmd kill $pid
+        log "Stopped $daemon $pid"
     done
     daemonpids=""
-}
-
-do_check(){
-    noop
 }
 
 do_kill(){
@@ -85,25 +140,32 @@ do_kill(){
 
 do_exit(){
     notify "Stopping $description"
-    cmd killall $daemon
+    do_stop
     cmd xinput enable "$device_name"
 }
+
+
+# Custom signals sent from flirc
+# service when device disconnected/reconnected
+trap flirc SIGUSR1
+
+
 
 trap do_exit EXIT
 trap do_kill SIGINT SIGTERM SIGQUIT
 timer=0
 daemonpids=""
-
+device_plugged_in=1
 
 notify "Starting $description"
 
 do_init
-do_check
 
 while true; do
-
+    run_modules &
+    run_checks &
     if [ $timer -gt $check_intervals ]; then 
-        do_check
+        check_deps &
         timer=0
     fi
     sleep 1

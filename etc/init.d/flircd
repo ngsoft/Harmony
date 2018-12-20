@@ -1,6 +1,6 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          flirc
+# Provides:          flircd
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
@@ -18,22 +18,20 @@ test -x /usr/sbin/lircd  || exit 0
 test -r /etc/default/harmony || exit 0
 . /etc/default/harmony
 
-name="flirc"
+name="flircd"
 description="remote control daemon"
-daemon=$prefix/sbin/flirc
-pidfile=/var/run/flirc.pid
+daemon=$prefix/sbin/$name
+pidfile=/var/run/$name.pid
 
 start(){
-	if ! pidof -x $daemon > /dev/null 2>&1; then
+	if ! pidof -x $name > /dev/null 2>&1; then
 		rm $pidfile > /dev/null 2>&1
 		$daemon --daemon &
 	fi
 }
 stop(){
-	if [ -e $pidfile ]; then
-		kill $(cat $pidfile) > /dev/null 2>&1
-		return $?
-	fi
+	killall $name > /dev/null 2>&1
+	return $?
 }
 
 
@@ -50,19 +48,15 @@ case "$1" in
 		;;
 	reload|force-reload)
 		log_daemon_msg "Reload configuration for $description" "$name"
-		if [ -e $pidfile ]; then
-			kill -1 $(cat $pidfile) > /dev/null 2>&1
-			log_end_msg $?
-		fi
+		killall -1 $name
 		log_end_msg 0
 		;;
 	restart)
 		stop
-		sleep 2
 		start
 		;;
 	status)
-		pidof -x $daemon > /dev/null 2>&1 && log_success_msg "$name is running" && exit 0
+		pidof -x $name > /dev/null 2>&1 && log_success_msg "$name is running" && exit 0
 		log_failure_msg "$name is not running" && exit 3
 		;;
 	*)
