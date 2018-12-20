@@ -3,7 +3,7 @@
 # Uses flirc_util to kick out flirc device of dfu (bootloader) mode
 #
 
-[ ! -r /etc/default/harmony ] && echo "Harmny remote Daemon not installed."  && exit 1
+[ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
 . /etc/default/harmony
 . $prefix/usr/lib/harmony/utils
 
@@ -33,13 +33,14 @@ fix_dfu(){
 get_status
 case "$?" in
     1)
-        throw_error "Flirc is disconnected, please try to plug it in."
+        throw_error_notify "Flirc is disconnected, please try to plug it in." "Flirc"
     ;;
     2)
         echo "Flirc in bootloader mode : trying to put it in normal operation mode."
-        fix_dfu || throw_error "Cannot put flirc into normal operation mode"
-        get_status || throw_error "An error has occured."
+        fix_dfu || throw_error_notify "Cannot put flirc into normal operation mode" "Flirc"
+        get_status || throw_error_notify "An error has occured." "Flirc"
         echo "Flirc is now connected."
+        notify "Flirc is now connected." "Flirc"
         exit 0
     ;;
     *)

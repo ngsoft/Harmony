@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Harmony Remote Daemon
+# Launched by harmony command if not running
+
+description="Harmony Remote Daemon"
+
+[ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
+
+

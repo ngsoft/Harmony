@@ -122,6 +122,16 @@ notify(){
 }
 
 #
+# Display error message to stderr, notify and exit
+#
+throw_error_notify(){
+    notify "$1" "$2"
+    log $1
+    >&2 echo "$1"
+    exit 1
+}
+
+#
 # Finds flirc device and display its path
 #
 get_device(){
