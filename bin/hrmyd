@@ -9,6 +9,7 @@
 # Can be overriden inside < /etc/default/harmony >
 description="Harmony Remote Daemon"
 logfile=/tmp/harmony.log
+check_intervals=30
 
 [ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
 . /etc/default/harmony
@@ -18,12 +19,68 @@ export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
 daemon=irexec
 prog=harmony
+sudo=gksu
+flirc=/etc/init.d/flirc
+
+do_init(){
+    # Check if service is started
+    if ! cmd $flirc status; then
+        notify "Flirc service is stopped, need to be restarted." "Flirc"
+        $sudo $flirc restart 
+        cmd $flirc status || throw_error_notify "Cannot start Flirc service, shutting down."
+    fi
+    do_stop
+    # Check if remote control is plugged in
+    if cmd flirc-fix; then
+        xinput disable "$device_name"
+        do_start
+    fi
+    
+}
+
+do_start(){
+    noop
+}
+
+do_stop(){
+    local pid
+    for pid in $daemonpids; do
+        cmd kill $pid
+    done
+    daemonpids=""
+}
+
+do_check(){
+    noop
+}
+
+do_kill(){
+    exit 0
+}
+
+do_exit(){
+    notify "Stopping $description"
+    cmd killall $daemon
+    cmd xinput enable "$device_name"
+}
+
+trap do_exit EXIT
+trap do_kill SIGINT SIGTERM SIGQUIT
+timer=0
+daemonpids=""
 
 
+notify "Starting $description"
 
-
+do_init
+do_check
 
 while true; do
+
+    if [ $timer -gt $check_intervals ]; then 
+        do_check
+        timer=0
+    fi
     sleep 1
-    # body
+    ((timer++))
 done
