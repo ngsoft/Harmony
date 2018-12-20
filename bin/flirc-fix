@@ -3,7 +3,9 @@
 # Uses flirc_util to kick out flirc device of dfu (bootloader) mode
 #
 
-. $(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd && popd > /dev/null 2>&1)/hmy-utils
+[ ! -r /etc/default/harmony ] && echo "Harmny remote Daemon not installed."  && exit 1
+. /etc/default/harmony
+. $prefix/usr/lib/harmony/utils
 
 cmd which flirc_util || throw_error "Cannot find flirc_util goto: https://flirc.tv/downloads"
 

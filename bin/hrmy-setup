@@ -24,7 +24,6 @@ install_service(){
     [ -e "/etc/init.d/$name" ] && return 2
     cmd ln -s $1 /etc/init.d/$name
     cmd update-rc.d $name defaults
-    enable_services $name
     cmd service $name start
 }
 
@@ -38,7 +37,9 @@ remove_service(){
 	cmd update-rc.d -f $1 remove
 	cmd systemctl stop $1
 	cmd rm /etc/init.d/$1
-	disable_services $1
+	cmd systemctl disable $1 > /dev/null 2>&1
+	cmd systemctl daemon-reload > /dev/null 2>&1
+	cmd systemctl reset-failed > /dev/null 2>&1
 }
 
 #
@@ -46,6 +47,7 @@ remove_service(){
 # also remove older versions
 #
 install_deps(){
+    echo "Installing dependencies, please wait ..."
     apt-get -y purge lirc lirc-x inputlirc flirc >> $logfile 2>&1
     apt-get -y --purge autoremove >> $logfile 2>&1
     cmd rm -fr /etc/lirc
@@ -61,6 +63,7 @@ install_deps(){
 # Removes dependencies
 #
 remove_deps(){
+    echo "Removing dependencies, please wait..."
     apt-get -y purge lirc lirc-x inputlirc flirc xdotool >> $logfile 2>&1
     apt-get -y --purge autoremove >> $logfile 2>&1
     cmd rm -fr /etc/lirc
@@ -72,6 +75,7 @@ remove_deps(){
 enable_services(){
     local service act
     for service in $@; do
+        [ -x /etc/init.d/$service ] && cmd update-rc.d $service defaults 
         echo "Enabling $service service."
         for act in unmask enable; do
             systemctl $act $service >> $logfile 2>&1
@@ -85,6 +89,7 @@ disable_services(){
     local service act
     for service in $@; do
         echo "Disabling $service service."
+        [ -x /etc/init.d/$service ] && cmd update-rc.d -f $service remove
         for act in stop disable mask; do
             systemctl $act $service >> $logfile 2>&1
         done
@@ -123,30 +128,20 @@ remove_binaries(){
 
 add_keymaps(){
     [ -z "$1" ] || [ -e "$1" ] || return 1
-    local dir
-    dir=/etc/lirc/lircd.conf.d
-    cmd rm $dir/flirc.conf
-    if [ -d "$dir" ] && [ ! -e "$dir.dis" ]; then
-        mv $dir $dir.dis
-        mkdir -p $dir
-    fi
-    ln -s $1 $dir/flirc.conf
+    rm_keymaps
+    cmd ln -s $1 /etc/lirc/lircd.conf.d/000flirc.conf
 }
 
 rm_keymaps(){
-    local dir
-    dir=/etc/lirc/lircd.conf.d
-    if [ -d "$dir.dis" ]; then
-        cmd rm -rf $dir
-        mv $dir.dis $dir
-    else
-        cmd rm $dir/flirc.conf
-    fi
+    cmd rm /etc/lirc/lircd.conf.d/000flirc.conf
 }
 
 
 if echo "$@" | grep "\-r" > /dev/null 2>&1; then
     if ask "Do you want to remove $description ?" N; then
+        echo "A log file is being created at $logfile";
+        cmd rm $logfile
+        touch $logfile
         notify "Removing $description, please wait..."
         echo "Removing /etc/default/harmony"
         cmd rm /etc/default/harmony
@@ -175,10 +170,9 @@ if ask "Do you want to install $description ?" Y; then
     cmd rm $logfile
     touch $logfile
     if ask "Do you want to install dependencies (lirc lirc-x xdotool flirc) ?" Y; then
-        echo "Installing dependencies, please wait ..."
         install_deps || throw_error "Cannot install dependencies"
     fi
-    add_keymaps $prefix/etc/flirc/flirc.conf
+    add_keymaps $prefix/etc/lirc/flirc.conf
     disable_services lircd-setup lircd-uinput lircdm irexec lircd
     echo "Installing service flirc"
     install_service $prefix/etc/init.d/flirc flirc

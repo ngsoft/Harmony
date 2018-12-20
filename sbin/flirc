@@ -15,27 +15,31 @@ if ! echo $@ | grep -q "\-\-daemon" && [ ! -e $pidfile ]; then
     exit 0
 fi
 
-[ -e $pidfile ] && throw_error "$0 Cannot be run more than once."
+[ -e $pidfile ] && exit 2
 pgrep -f -n $0 > $pidfile
 
 do_start(){
     [ -d "/run/lirc" ] || mkdir -p "/run/lirc"
-    $lirc -d $device &
-    ln -fs /run/lirc/lircd /dev/lircd
+    cmd $lirc -d $device &
+    cmd ln -fs /run/lirc/lircd /dev/lircd
 }
 
 do_stop(){
-    killall $lirc
+    for pid in $(pidof $lirc); do
+        cmd kill $pid
+    done
 }
 
 do_reload(){
-    killall -1 $lirc
+    for pid in $(pidof $lirc); do
+        cmd kill -1 $pid
+    done
 }
 
 
 do_check(){
     local dev=$(get_device)
-    [ -n "$dev" ] || return 1
+    [ -z "$dev" ] && do_stop && return 1
     is_running $lirc || do_start
 }
 
