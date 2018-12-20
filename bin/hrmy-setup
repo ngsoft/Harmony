@@ -4,7 +4,7 @@ prefix=$(dirname "$(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd
 logfile="/tmp/$(basename ${BASH_SOURCE[0]}).log"
 description="Harmony Remote Daemon"
 OVERRIDE=no
-binaries="harmony hrmy hrmy-send flirc-fix"
+binaries="harmony hrmyd hrmy-send flirc-fix"
 
 if [ ! -e $prefix/usr/lib/harmony/utils ]; then
     echo "$(basename ${BASH_SOURCE[0]}) cannot find libraries." >&2

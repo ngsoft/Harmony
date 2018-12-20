@@ -1,0 +1,22 @@
+#!/bin/bash
+# Checks if flirc online and loads configuration into it
+
+[ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
+. /etc/default/harmony
+. $prefix/usr/lib/harmony/utils
+
+[ -r $prefix/etc/flirc/flirc.conf ] || exit 1
+. $prefix/etc/flirc/flirc.conf
+
+DISPLAY=:0
+PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+
+cmd flirc-fix || exit 1
+
+for prop in sleep_detect seq_modifiers noise_canceler profiles; do
+    [[ ${!prop} =~ (disable|enable) ]] && cmd flirc_util $prop ${!prop}
+done
+
+if [[ $interkey_delay =~ ^[0-6]$ ]]; then
+    cmd flirc_util interkey_delay $interkey_delay
+fi

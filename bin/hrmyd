@@ -3,8 +3,20 @@
 # Harmony Remote Daemon
 # Launched by harmony command if not running
 
-description="Harmony Remote Daemon"
+
 
 [ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
+. /etc/default/harmony
+. $prefix/usr/lib/harmony/utils
 
 
+export DISPLAY=:0
+export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+
+description="Harmony Remote Daemon"
+prog=harmony
+daemon=irexec
+logfile=/tmp/harmony.log
+me=${BASH_SOURCE[0]}
+
+pgrep -f -c "/bin/bash $me"
