@@ -1,0 +1,63 @@
+#!/bin/bash
+
+lirc=/usr/sbin/lircd
+pidfile=/var/run/flirc.pid
+
+[ -r /etc/default/harmony ] || exit 0
+. /etc/default/harmony
+. $prefix/usr/lib/harmony/utils
+
+
+[ "$(id -u)" != "0" ] && throw_error "This script can only be run by root user."
+
+if ! echo $@ | grep -q "\-\-daemon" && [ ! -e $pidfile ]; then
+    $0 --daemon &
+    exit 0
+fi
+
+[ -e $pidfile ] && throw_error "$0 Cannot be run more than once."
+pgrep -f -n $0 > $pidfile
+
+do_start(){
+    [ -d "/run/lirc" ] || mkdir -p "/run/lirc"
+    $lirc -d $device &
+    ln -fs /run/lirc/lircd /dev/lircd
+}
+
+do_stop(){
+    killall $lirc
+}
+
+do_reload(){
+    killall -1 $lirc
+}
+
+
+do_check(){
+    local dev=$(get_device)
+    [ -n "$dev" ] || return 1
+    is_running $lirc || do_start
+}
+
+
+do_kill(){
+    is_running $lirc && do_stop
+    rm $pidfile
+    exit 0
+}
+
+# Starting daemon
+trap do_kill SIGINT SIGTERM SIGQUIT
+trap do_reload SIGHUP
+
+do_check
+
+timer=0
+while true; do
+    if [ $timer -gt 10 ]; then 
+        do_check
+        timer=0
+    fi
+	sleep 1
+    ((timer++))
+done

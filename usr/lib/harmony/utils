@@ -91,18 +91,6 @@ is_running(){
     return $?
 }
 
-#
-# Get Count of running instances of a process
-#
-count_process(){
-    local cnt
-    for _p in $(pidof -x "$1"); do
-        ((cnt++))
-    done
-    [[ -z $cnt ]] && cnt=0
-    return $cnt
-}
-
 
 #
 # Search for process pids (if any) and kills them

@@ -121,6 +121,29 @@ remove_binaries(){
     done
 }
 
+add_keymaps(){
+    [ -z "$1" ] || [ -e "$1" ] || return 1
+    local dir
+    dir=/etc/lirc/lircd.conf.d
+    cmd rm $dir/flirc.conf
+    if [ -d "$dir" ] && [ ! -e "$dir.dis" ]; then
+        mv $dir $dir.dis
+        mkdir -p $dir
+    fi
+    ln -s $1 $dir/flirc.conf
+}
+
+rm_keymaps(){
+    local dir
+    dir=/etc/lirc/lircd.conf.d
+    if [ -d "$dir.dis" ]; then
+        cmd rm -rf $dir
+        mv $dir.dis $dir
+    else
+        cmd rm $dir/flirc.conf
+    fi
+}
+
 
 if echo "$@" | grep "\-r" > /dev/null 2>&1; then
     if ask "Do you want to remove $description ?" N; then
@@ -128,6 +151,7 @@ if echo "$@" | grep "\-r" > /dev/null 2>&1; then
         echo "Removing /etc/default/harmony"
         cmd rm /etc/default/harmony
         remove_binaries $binaries
+        rm_keymaps
         echo "Removing service flirc"
         remove_service flirc
         enable_services lircd-setup lircd-uinput lircdm irexec lircd
@@ -154,6 +178,7 @@ if ask "Do you want to install $description ?" Y; then
         echo "Installing dependencies, please wait ..."
         install_deps || throw_error "Cannot install dependencies"
     fi
+    add_keymaps $prefix/etc/flirc/flirc.conf
     disable_services lircd-setup lircd-uinput lircdm irexec lircd
     echo "Installing service flirc"
     install_service $prefix/etc/init.d/flirc flirc
