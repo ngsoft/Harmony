@@ -81,7 +81,7 @@ run_checks(){
 
 on_start(){
     if [ $device_on == 1 ] && [ $starting == 0 ]; then
-        starting = 1
+        starting=1
         process_count=0
         local file
         for file in $irprofiles/*.conf; do
@@ -98,8 +98,8 @@ on_start(){
 }
 
 on_stop(){
-    local pids="$(pidof irexec)"
-    [ -n $pids ] && log Stopped irexec $pids
+    local pids=$(pidof irexec)
+    [ -n "$pids" ] && log Stopped irexec $pids
     cmd killall irexec
     process_count=0
 }
@@ -167,6 +167,8 @@ trap on_change SIGUSR1
 trap on_exit EXIT
 trap on_kill SIGINT SIGTERM SIGQUIT
 
+notify "Starting $description."
+trigger init
 
 while true; do
     run_checks
