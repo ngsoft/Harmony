@@ -92,20 +92,23 @@ on_start(){
         while ! cmd pidof irexec; do
             sleep 1
         done
+        log Started irexec $(pidof irexec)
         starting=0
     fi
 }
 
 on_stop(){
+    local pids="$(pidof irexec)"
+    [ -n $pids ] && log Stopped irexec $pids
     cmd killall irexec
     process_count=0
 }
 
 on_restart(){
     [ $device_on == 1 ] || return
+    log Restarting irexec
     trigger stop
     trigger start
-
 }
 
 
