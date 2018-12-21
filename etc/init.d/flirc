@@ -23,38 +23,44 @@ description="remote control daemon"
 daemon=$prefix/sbin/$name
 pidfile=/var/run/$name.pid
 
-start(){
+do_start(){
 	if ! pidof -x $name > /dev/null 2>&1; then
 		rm $pidfile > /dev/null 2>&1
 		$daemon --daemon &
 	fi
 }
-stop(){
-	killall $name > /dev/null 2>&1
-	return $?
+do_stop(){
+	[ -e $pidfile ] || return 0
+	kill "$(cat $pidfile)"
+	while [ -e $pidfile ]; do
+		sleep 1
+	done
+	return 0
+}
+do_restart(){
+	do_stop
+	do_start
 }
 
 
 case "$1" in
 	start)
 		log_daemon_msg "Starting $description" "$name"
-		start
+		do_start
 		log_end_msg $?
 		;;
 	stop)
 		log_daemon_msg "Stopping $description" "$name"
-		stop
+		do_stop
 		log_end_msg $?
 		;;
 	reload|force-reload)
-		log_daemon_msg "Reload configuration for $description" "$name"
-		killall -1 $name
+		do_restart &
 		log_end_msg 0
 		;;
 	restart)
-		stop
-		start
-		;;
+		do_restart &
+	;;
 	status)
 		pidof -x $name > /dev/null 2>&1 && log_success_msg "$name is running" && exit 0
 		log_failure_msg "$name is not running" && exit 3

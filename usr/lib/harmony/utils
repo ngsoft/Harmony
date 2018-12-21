@@ -70,7 +70,7 @@ noop(){
 #
 throw_error(){
     log $@
-    >&2 echo "$@"
+    echo "$@" >&2
     exit 1
 }
 
@@ -79,6 +79,7 @@ throw_error(){
 #
 log(){
     [[ -z "$logfile" ]] && logfile=/dev/null
+    [[ "$disable_log" == "1" ]] && logfile=/dev/null
     [[ -n "$@" ]] &&  echo "$(date) | $@" >> $logfile
 }
 

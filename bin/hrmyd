@@ -10,13 +10,14 @@
 description="Harmony Remote Daemon"
 logfile=/tmp/harmony.log
 check_intervals=30
+disable_log=0
 
 [ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
 . /etc/default/harmony
 . $prefix/usr/lib/harmony/utils
 
 
-lirc=/usr/sbin/lircd
+lirc=lircd
 daemon=irexec
 prog=harmony
 sudo=gksu
@@ -32,11 +33,15 @@ export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
 export logfile
 
+
+
+
 #
 # Run modules every seconds to perform checks
 # or other things
 #
 run_modules(){
+    [ $device_plugged_in == 1 ] || return
     local module
     for module in $modules/*.module; do
         cmd bash $module &
@@ -50,27 +55,27 @@ run_modules(){
 # Checks if irexec processes are running correctly
 #
 run_checks(){
-    if [ $device_plugged_in == 0 ]; then
+    if [[ $device_plugged_in == 0 ]]; then
         do_stop
         return
     fi
-
-    local pid status
-    for pid in $daemonpids; do
-        cmd ps -p $daemon_pid || status=1
-    done
-    if [ -z $status ]; then
-        do_stop
-        do_start
-    fi
+    [ "$file_count" -gt "$(pgrep -c $daemon)" ] && do_restart
 }
 
 
 
 flirc(){
+    do_stop
+    # wait for next signal
+    if ! cmd pidof $lirc && [ -z "$1" ]; then
+        device_plugged_in=0
+        return
+    fi
+
     if [ -e $device ]; then
         notify "Device is connected" "Flirc"
         device_plugged_in=1
+        do_start
     else
         device_plugged_in=0
         if cmd flirc-fix; then
@@ -80,9 +85,7 @@ flirc(){
             xinput disable "$device_name"
             flirc-load-conf
             do_start
-            return
         fi
-        device_plugged_in=0
     fi
 }
 
@@ -97,41 +100,37 @@ check_deps(){
 }
 
 do_init(){
+    do_stop
     # Check if service is started
     if ! cmd $flirc status; then
-        notify "Flirc service is stopped, need to be restarted." "Flirc"
+        notify "Flirc service is stopped, need to be restarted."
         $sudo $flirc restart 
         cmd $flirc status || throw_error_notify "Cannot start Flirc service, shutting down."
     fi
-    do_stop
     # Check if remote control is plugged in
-    flirc
+    flirc init
 }
 
 
 do_start(){
-    local file pid
+    [[ $device_plugged_in == 1 ]] || return
+    file_count=0
+    local file
     for file in $irprofiles/*.conf; do
-        irexec -n $prog $file &
-        pid=$(pgrep -f -n $daemon)
-        log "Started $daemon $pid"
-        if [ -z $daemonpids ]; then
-            $daemonpids=$pid
-            return 0
-        fi
-        $daemonpids="$daemonpids $pid"
-    fi
-
-    
+        cmd irexec -d -n $prog $file
+        ((file_count++))
+    done
+    log "Started $daemon $(pidof $daemon)"
 }
 
 do_stop(){
-    local pid
-    for pid in $daemonpids; do
-        cmd kill $pid
-        log "Stopped $daemon $pid"
-    done
-    daemonpids=""
+    cmd pidof $daemon && log "Stopped $daemon $(pidof $daemon)"
+    cmd killall $daemon
+}
+
+do_restart(){
+    do_stop
+    do_start
 }
 
 do_kill(){
@@ -150,20 +149,22 @@ do_exit(){
 trap flirc SIGUSR1
 
 
-
 trap do_exit EXIT
 trap do_kill SIGINT SIGTERM SIGQUIT
 timer=0
-daemonpids=""
-device_plugged_in=1
+file_count=0
+device_plugged_in=0
+
+cmd rm $logfile
+cmd touch $logfile
 
 notify "Starting $description"
 
 do_init
 
 while true; do
+    run_checks
     run_modules &
-    run_checks &
     if [ $timer -gt $check_intervals ]; then 
         check_deps &
         timer=0
