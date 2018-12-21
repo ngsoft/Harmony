@@ -4,7 +4,13 @@
 # Launched by harmony command if not running, manages irexec processes and flirc hotswap
 # As flirc service it detects if the usb is plugged in and launch the process when needed
 
-[ $(pgrep -f -c "/bin/bash ${BASH_SOURCE[0]}") != 1 ] && exit 1
+[ $(pgrep -f -c "/bin/bash ${BASH_SOURCE[0]}") != 1 ] && [ "$hrmyd_real_daemon" != "1" ] && exit 1
+
+if [ "$hrmyd_real_daemon" != "1" ]; then
+    export hrmyd_real_daemon=1
+    $0 &
+    exit 0
+fi
 
 # Can be overriden inside < /etc/default/harmony >
 description="Harmony Remote Daemon"
@@ -54,9 +60,10 @@ run_modules(){
 # Checks if irexec processes are running correctly
 #
 run_checks(){
-    [[ $device_plugged_in == 1 ]] || return
-    [ $file_count == 0 ] && do_start
-    [ "$file_count" -gt "$(pgrep -c $daemon)" ] && do_restart
+    if [[ $starting == 0 ]] && [[ $device_plugged_in == 1 ]]; then
+        [ $file_count == 0 ] && do_start
+        [ "$file_count" -gt "$(pgrep -c $daemon)" ] && do_restart
+    fi
 }
 
 
@@ -84,6 +91,7 @@ flirc(){
 # intervals are in seconds
 #
 check_deps(){
+    [ $device_plugged_in == 1 ] || return
     cmd $flirc status || do_init
 }
 
@@ -101,18 +109,16 @@ do_init(){
 
 
 do_start(){
-    echo "start"
-    [[ $device_plugged_in == 1 ]] || return
-    file_count=0
-    local file
-    for file in $irprofiles/*.conf; do
-        cmd irexec -d -n $prog $file
-        ((file_count++))
-    done
-    while ! cmd pidof $daemon; do
-        sleep 1
-    done
-    log "Started $daemon $(pidof $daemon)"
+    if [[ $device_plugged_in == 1 ]] && [[ $starting == 0 ]]; then
+        echo "start"
+        file_count=0
+        local file
+        for file in $irprofiles/*.conf; do
+            cmd irexec -d -n $prog $file
+            ((file_count++))
+        done
+        starting=0
+    fi
 }
 
 do_stop(){
@@ -121,19 +127,20 @@ do_stop(){
 }
 
 do_restart(){
+    [[ $device_plugged_in == 1 ]] || return
     do_stop
     do_start
 }
 
 do_kill(){
+    #cmd killall $daemon
+    cmd xinput enable "$device_name"
+    notify "Stopping $description"
+    do_stop &
     exit 0
 }
 
-do_exit(){
-    notify "Stopping $description"
-    do_stop
-    cmd xinput enable "$device_name"
-}
+
 
 
 # Custom signals sent from flirc
@@ -141,10 +148,11 @@ do_exit(){
 trap flirc SIGUSR1
 
 
-trap do_exit EXIT
+#trap do_exit EXIT
 trap do_kill SIGINT SIGTERM SIGQUIT
 timer=0
 file_count=0
+starting=0
 device_plugged_in=0
 
 cmd rm $logfile
