@@ -21,8 +21,7 @@ fi
 pgrep -f -n $0 > $pidfile
 
 do_signal(){
-    #sleep 5
-    cmd killall -10 hrmyd
+    cmd killall -10 harmony
 }
 
 

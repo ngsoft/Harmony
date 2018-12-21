@@ -78,9 +78,9 @@ throw_error(){
 # Log a message into a declared $logfile
 #
 log(){
-    [[ -z "$logfile" ]] && logfile=/dev/null
-    [[ "$disable_log" == "1" ]] && logfile=/dev/null
-    [[ -n "$@" ]] &&  echo "$(date) | $@" >> $logfile
+    [ -n "$logfile" ] || [ "$disable_log" != "1" ] || return
+    [ -e $logfile ] || cmd touch $logfile
+    [[ -n "$@" ]] &&  echo "$(date "+%Y-%m-%d %H:%M") | $@" >> $logfile 2>&1
 }
 
 #
@@ -154,3 +154,10 @@ get_prefix(){
 }
 
 
+#
+# Trigger an event
+#
+trigger(){
+    [ -n "$1" ] || cmd declare -F on_$1 || return 1
+    on_$1
+}
