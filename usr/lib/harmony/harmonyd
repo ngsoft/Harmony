@@ -31,7 +31,8 @@ done
 
 prog=harmony
 sudo=gksu
-flirc=$prefix/etc/init.d/flirc
+sudo=sudo
+flirc=/etc/init.d/flirc
 irprofiles=$prefix/etc/lirc/irexec.conf.d
 
 [ -n "$logfile" ] || logfile=/tmp/harmony.log
@@ -141,7 +142,7 @@ on_change(){
 }
 
 on_timer(){
-   [ $device_on == 1 ] || return
+    $flirc status
     cmd $flirc status || trigger init
 }
 

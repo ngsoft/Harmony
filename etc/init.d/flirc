@@ -27,6 +27,9 @@ do_start(){
 	if ! pidof -x $name > /dev/null 2>&1; then
 		rm $pidfile > /dev/null 2>&1
 		$daemon --daemon &
+		while [ ! -e $pidfile ]; do
+			sleep 1
+		done
 	fi
 }
 do_stop(){

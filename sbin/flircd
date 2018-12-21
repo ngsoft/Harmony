@@ -12,7 +12,7 @@ pidfile=/var/run/flircd.pid
 
 [ "$(id -u)" != "0" ] && throw_error "This script can only be run by root user."
 
-if ! echo $@ | grep -q "\-\-daemon" && [ ! -e $pidfile ]; then
+if ! echo $@ | grep -q "\-d" && [ ! -e $pidfile ]; then
     $0 --daemon &
     exit 0
 fi
@@ -20,53 +20,53 @@ fi
 [ -e $pidfile ] && exit 2
 pgrep -f -n $0 > $pidfile
 
-do_signal(){
-    cmd killall -10 harmony
+on_signal(){
+    killall -10 harmonyd
 }
 
 
-do_start(){
+on_start(){
     [ -d "/run/lirc" ] || mkdir -p "/run/lirc"
     cmd $lirc -d $device &
     cmd ln -fs /run/lirc/lircd /dev/lircd
-    do_signal
+    trigger signal
 }
 
-do_stop(){
+on_stop(){
     cmd killall $lirc
-    do_signal
+    trigger signal
 }
 
-do_reload(){
+on_reload(){
     cmd killall -1 $lirc
 }
 
 
-do_check(){
+on_check(){
     if [ -z "$(get_device)" ]; then
-        cmd pidof $lirc && do_stop
+        cmd pidof $lirc && trigger stop
         return 1
     fi
-    cmd pidof $lirc || do_start
+    cmd pidof $lirc || trigger start
 }
 
 
-do_kill(){
+on_kill(){
     exit 0
 }
 
-do_exit(){
-    cmd pidof $lirc && do_stop
+on_exit(){
+    cmd pidof $lirc && trigger stop
     cmd rm $pidfile
 }
 
 # Starting daemon
-trap do_exit EXIT
-trap do_kill SIGINT SIGTERM SIGQUIT 
-trap do_reload SIGHUP
+trap on_exit EXIT
+trap on_kill SIGINT SIGTERM SIGQUIT 
+trap on_reload SIGHUP
 
 
 while true; do
-    do_check
+    trigger check
 	sleep 10
 done
