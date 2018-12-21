@@ -1,4 +1,34 @@
 #!/bin/bash
+# Handle keystrokes
 # Sends Commands to activities
 
-echo "$1"
+[ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
+. /etc/default/harmony
+. $prefix/usr/lib/harmony/utils
+
+#using harmonyd ?
+if [ -z "$profile_root" ]; then
+    export DISPLAY=:0
+    export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+    export logfile
+    export profile_root=$prefix/etc/harmony
+    export modules=$profile_root/modules
+    export activities=$profile_root/activities
+fi
+
+usage(){
+    throw_error "Usage: $(basename ${BASH_SOURCE[0]}) <KEY>"
+}
+
+[ -n "$1" ] || usage
+[ -d $profile_root ] || exit 1
+
+reserved="^(on|off|reboot|sleep|screen|alarm|www)$"
+
+if [[ $1 =~ $reserved ]]; then
+    [ -e $profile_root/keyhandler.sh ] && bash $profile_root/keyhandler.sh $1
+    exit 0
+fi
+
+
+

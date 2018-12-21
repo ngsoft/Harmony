@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file contains the mapping of remote keys to actions within Kodi.                -->
+<!--                                                                                      -->
+<!-- The format is:                                                                       -->
+<!--  <window>                                                                            -->
+<!--    <device>                                                                          -->
+<!--      <button>action</button>                                                         -->
+<!--    </device>                                                                         -->
+<!--  </window>                                                                           -->
+<!--                                                                                      -->
+<!-- The <global> section is a fall through - they will only be used if the button is     -->
+<!-- not used in the current window's section.                                            -->
+<!--                                                                                      -->
+<!-- Actions can be built-in functions.                                                   -->
+<!--  eg <B>ActivateWindow(Music)</B>                                                     -->
+<!-- would automatically go to Music on the press of the B button.                        -->
+<!--                                                                                      -->
+<!-- An empty action removes the corresponding mapping from default and parent keymaps.   -->
+<!-- This is different from a "noop" action, which disables a button.                     -->
+<!--                                                                                      -->
+<!-- More documentation on keymaps can be found on http://kodi.wiki/view/keymaps          -->
+<keymap>
+    <global>
+        <remote>
+            <queueplus>MoveItemUp</queueplus>
+            <queueminus>MoveItemUp</queueminus>
+            <play>PlayPause</play>
+            <pause>Pause</pause>
+            <stop>Stop</stop>
+            <forward>FastForward</forward>
+            <reverse>Rewind</reverse>
+            <left>Left</left>
+            <right>Right</right>
+            <up>Up</up>
+            <down>Down</down>
+            <select>Select</select>
+            <enter>FullScreen</enter>
+            <pageplus>PageUp</pageplus>
+            <pageminus>PageDown</pageminus>
+            <back>Back</back>
+            <menu>Fullscreen</menu>
+            <title>ContextMenu</title>
+            <info>Info</info>
+            <skipplus>SkipNext</skipplus>
+            <skipminus>SkipPrevious</skipminus>
+            <display>FullScreen</display>
+            <start>PreviousMenu</start>
+            <record>CreateBookmark</record>
+            <volumeplus>VolumeUp</volumeplus>
+            <volumeminus>VolumeDown</volumeminus>
+            <mute>Mute</mute>
+            <power>ShutDown()</power>
+            <red>ActivateWindow(favourites)</red>
+            <green>ActivateWindow(Videos)</green>
+            <yellow>ActivateWindow(Music)</yellow>
+            <blue>ActivateWindow(Pictures)</blue>
+            <fav>ActivateWindow(favourites)</fav>
+        </remote>
+    </global>
+    <FullscreenVideo>
+        <keyboard>
+            <escape>Fullscreen</escape>
+            <menu>Fullscreen</menu>
+        </keyboard>
+    </FullscreenVideo>
+  <Home>
+    <keyboard>
+      <escape>Fullscreen</escape>
+      <menu>Fullscreen</menu>
+    </keyboard>
+  </Home>
+  <PlayerControls>
+    <keyboard>
+      <escape>Back</escape>
+      <menu>Back</menu>
+    </keyboard>
+  </PlayerControls>
+
+  <VideoOSD>
+    <keyboard>
+      <menu>Back</menu>
+      <escape>Back</escape>
+    </keyboard>
+  </VideoOSD>
+
+</keymap>

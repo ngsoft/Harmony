@@ -179,5 +179,7 @@ begin remote
         KEY_COFFEE              152
         KEY_REFRESH             173
         KEY_CALC                140
+        KEY_FASTFORWARD         208
+        KEY_REWIND              168
         end codes
 end remote

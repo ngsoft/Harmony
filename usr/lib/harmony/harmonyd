@@ -44,8 +44,9 @@ fi
 export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
 export logfile
-export modules=$prefix/etc/$prog/modules
-export activities=$prefix/etc/$prog/activities
+export profile_root=$prefix/etc/$prog
+export modules=$profile_root/modules
+export activities=$profile_root/activities
 
 # Some flags
 device_on=0

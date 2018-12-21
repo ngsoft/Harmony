@@ -1,10 +1,10 @@
-KEY_102ND               =    on
-KEY_PAUSE               =    off
-KEY_COMPOSE             =    reboot
-KEY_SLEEP               =    sleep
-KEY_SYSRQ               =    screen
-KEY_KPDOT               =    alarm
-KEY_CAPSLOCK            =    www
+KEY_102ND               =    ON
+KEY_PAUSE               =    OFF
+KEY_COMPOSE             =    REBOOT
+KEY_SLEEP               =    SLEEP
+KEY_SYSRQ               =    SCREEN
+KEY_KPDOT               =    ALARM
+KEY_CAPSLOCK            =    WWW
 KEY_S                   =    exit
 KEY_VOLUMEUP            =    vol+
 KEY_VOLUMEDOWN          =    vol-

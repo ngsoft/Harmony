@@ -30,7 +30,13 @@ foreach(scandir($kdir) as $file){
         $contents = str_replace("#", ";", $contents);
         if(($data = @parse_ini_string($contents, false, INI_SCANNER_RAW))){
             foreach($data as $replace => $new){
-                $target_contents = str_replace("$replace ", "$new ", $target_contents);
+                $target_contents = preg_replace_callback('/('.$replace.'\s)[\s]+([0-9]+)\n/', function($matches) use($new){
+                    $k = $matches[1];
+                    $v = $matches[2];
+                    return $new.str_repeat(" ", 24 - strlen($new)).$v."\n";
+                    
+                }, $target_contents);
+                //$target_contents = str_replace("$replace ", "$new ", $target_contents);
                 $keymap_file_contents[]= $replace . str_repeat(" ", 24 - strlen($replace)) . "=    " . $new;
                 if(in_array($new, $dups)) continue;
                 $irexec_contents[] = implode("\n", [
