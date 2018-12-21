@@ -8,7 +8,7 @@
 
 if [ "$hrmyd_real_daemon" != "1" ]; then
     export hrmyd_real_daemon=1
-    $0 &
+    ${BASH_SOURCE[0]} &
     exit 0
 fi
 
@@ -136,9 +136,10 @@ do_kill(){
     #cmd killall $daemon
     cmd xinput enable "$device_name"
     notify "Stopping $description"
-    do_stop &
+    killall $daemon &
     exit 0
 }
+
 
 
 
