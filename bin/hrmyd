@@ -25,15 +25,14 @@ flirc=/etc/init.d/flirc
 
 
 irprofiles=$prefix/etc/lirc/irexec.conf.d
-modules=$prefix/etc/$prog/modules
-activities=$prefix/etc/$prog/activities
+
 #main=$prefix/etc/$prog/main
 
 export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
 export logfile
-
-
+export modules=$prefix/etc/$prog/modules
+export activities=$prefix/etc/$prog/activities
 
 
 #
@@ -55,10 +54,8 @@ run_modules(){
 # Checks if irexec processes are running correctly
 #
 run_checks(){
-    if [[ $device_plugged_in == 0 ]]; then
-        do_stop
-        return
-    fi
+    [[ $device_plugged_in == 1 ]] || return
+    [ $file_count == 0 ] && do_start
     [ "$file_count" -gt "$(pgrep -c $daemon)" ] && do_restart
 }
 
@@ -66,25 +63,16 @@ run_checks(){
 
 flirc(){
     do_stop
-    # wait for next signal
-    if ! cmd pidof $lirc && [ -z "$1" ]; then
-        device_plugged_in=0
-        return
-    fi
-
     if [ -e $device ]; then
         notify "Device is connected" "Flirc"
         device_plugged_in=1
-        do_start
     else
         device_plugged_in=0
-        if cmd flirc-fix; then
+        if cmd flirc-load-conf; then
             device_plugged_in=1
             # prevents remote control from sending random
             # keypresses to the wrong windows (LIRC not grabbing the device as inputlirc)
             xinput disable "$device_name"
-            flirc-load-conf
-            do_start
         fi
     fi
 }
@@ -96,7 +84,7 @@ flirc(){
 # intervals are in seconds
 #
 check_deps(){
-    noop
+    cmd $flirc status || do_init
 }
 
 do_init(){
@@ -108,11 +96,12 @@ do_init(){
         cmd $flirc status || throw_error_notify "Cannot start Flirc service, shutting down."
     fi
     # Check if remote control is plugged in
-    flirc init
+    flirc
 }
 
 
 do_start(){
+    echo "start"
     [[ $device_plugged_in == 1 ]] || return
     file_count=0
     local file
@@ -120,12 +109,15 @@ do_start(){
         cmd irexec -d -n $prog $file
         ((file_count++))
     done
+    while ! cmd pidof $daemon; do
+        sleep 1
+    done
     log "Started $daemon $(pidof $daemon)"
 }
 
 do_stop(){
-    cmd pidof $daemon && log "Stopped $daemon $(pidof $daemon)"
     cmd killall $daemon
+    file_count=0
 }
 
 do_restart(){
@@ -164,9 +156,9 @@ do_init
 
 while true; do
     run_checks
-    run_modules &
+    run_modules
     if [ $timer -gt $check_intervals ]; then 
-        check_deps &
+        check_deps
         timer=0
     fi
     sleep 1
