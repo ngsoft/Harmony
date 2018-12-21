@@ -12,7 +12,7 @@ pidfile=/var/run/flircd.pid
 
 [ "$(id -u)" != "0" ] && throw_error "This script can only be run by root user."
 
-if ! echo $@ | grep -q "\-d" && [ ! -e $pidfile ]; then
+if ! echo "$@" | grep -q "\-d" && [ ! -e $pidfile ]; then
     $0 --daemon &
     exit 0
 fi
@@ -21,7 +21,8 @@ fi
 pgrep -f -n $0 > $pidfile
 
 on_signal(){
-    killall -10 harmonyd
+    local pid=$(pgrep -n harmonyd)
+    [ -n "$pid" ] && kill -10 $pid
 }
 
 

@@ -1,0 +1,13 @@
+#!/bin/bash
+# Harmony Activity launcher
+#
+
+[ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
+. /etc/default/harmony
+. $prefix/usr/lib/harmony/utils
+
+
+cmd pidof -x harmonyd || $prefix/usr/lib/harmony/harmonyd &
+
+
+
