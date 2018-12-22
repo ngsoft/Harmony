@@ -5,13 +5,17 @@
 
 
 case "$1" in
-    1)
-        echo "case 1"
+    RECORD)
+        echo "rec"
     ;;
     2|3)
         echo "case 2 or 3"
     ;;
     *)
-        echo "default"
+       # errorlevel is used to redirect the key to <main>
+       exit 1
     ;;
 esac
+
+
+echo "kodi: $1"

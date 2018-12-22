@@ -27,25 +27,31 @@ activity.pid(){
     cat "$userspace/activity.pid" 2> /dev/null
 }
 
+activity.send(){
+    [ -n "$1" ] || return 1
+    activity.haskeys || return 1
+    pushd `activity.path` > /dev/null 2>&1
+    bash `activity.id`.keys $1
+    local ret=$?
+    popd > /dev/null 2>&1
+    return $ret
+}
+
 # Activity root path
 activity.path(){
-    local actname=`activity.name`
+    local actname=`activity.id`
     [ -n "$actname" ] || return
     printf "$activities/%s" $actname
 }
 
 # Has a .keys file
 activity.haskeys(){
-    local actname=`activity.name`
+    local actname=`activity.id`
     [ -n "$actname" ] || return 1
     test -r "`activity.path`/$actname.keys"
     return $?
 }
 
-# Last pushed key
-activity.key(){
-    cat "$userspace/activity.key" 2> /dev/null
-}
 
 #checks if activity exists
 activity.exists(){

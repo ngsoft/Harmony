@@ -36,7 +36,10 @@ on_exit(){
     [ $lockset == 1 ] && cmd rm $lockfile
 }
 
+trap on_exit EXIT
+
 trigger lock
+
 if [[ $1 =~ $reserved ]]; then
     if [ -r "$profile_root/main/reserved.keys" ]; then
         cmd pushd "$profile_root/main"
@@ -45,13 +48,15 @@ if [[ $1 =~ $reserved ]]; then
     fi
     exit 0
 fi
+. activity
 
-# Sends Notification to activity that a key has been pushed
-printf "$1" > $keystore
-pid=`activity.pid`
-[ -n "$pid" ] && cmd kill -10 $pid
+# Sends key to activity (shared)
+# return status 0 will stop there
+# return status 1 will continue to <main>
+activity.send $1 && exit 0
 
-# Also sends key to passive activity
+
+# Also sends key to <main> activity
 if [ -r "$profile_root/main/main.keys" ]; then
     cmd pushd "$profile_root/main"
         bash "$profile_root/main/main.keys" $1

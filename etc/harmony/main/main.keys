@@ -10,6 +10,6 @@ case "$1" in
         echo "case 2 or 3"
     ;;
     *)
-        echo "default"
+        echo "$1"
     ;;
 esac

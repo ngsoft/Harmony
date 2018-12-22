@@ -14,10 +14,10 @@ case "$1" in
         xset +dpms
     ;;
     OFF)
-        cmd gksu shutdown -h now
+        gksu "shutdown -h now"
     ;;
     REBOOT)
-        cmd gksu shutdown -r now
+       gksu "shutdown -r now"
     ;;
     SLEEP)
         # Stops all running activities
@@ -31,7 +31,7 @@ case "$1" in
         # if alarm is enabled will wake just before it triggers
         # sudo can be configured: %sudo	ALL=(ALL:ALL) NOPASSWD:ALL
         # for no password check on input
-        cmd gksu sleep.until
+        gksu "$prefix/usr/lib/harmony/sleep.until"
 
     ;;
     SCREEN)
@@ -49,3 +49,5 @@ case "$1" in
         . www.key
     ;;
 esac
+
+echo "reserved $1"

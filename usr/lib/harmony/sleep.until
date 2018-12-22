@@ -1,4 +1,10 @@
-#!/usr/bin/sudo /bin/bash
+#!/bin/bash
+
+if [ "$(id -u)" != "0" ]; then
+	echo "Only root can run this!" >&2
+	exit 1
+fi
+
 rtcn=rtc0
 lockfile=/tmp/$(basename $0)
 

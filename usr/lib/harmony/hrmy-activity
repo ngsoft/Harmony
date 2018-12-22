@@ -70,21 +70,11 @@ on_init(){
     printf "$icon" > `printf $fileprefix "icon"`
     printf "$pid" > `printf $fileprefix "pid"`
     cmd pushd "`act.path`"
-    trigger ready
     trigger start
 }
 
-on_keyup(){
-    [ $ready == 1 ] || return
-    activity.haskeys || return
-    local key=`activity.key`
-
-noop
-}
-
-
 on_start(){
-    [ $ready == 1 ] || return
+
     noop
 }
 on_stop(){
@@ -94,14 +84,9 @@ on_stop(){
 
 on_check(){
     [ $ready == 1 ] || return
+    echo on_check
     #cmd pidof -x $check || exit 0
     noop
-}
-
-on_ready(){
-    ready=0
-    harmony.ready && ready=1
-    notify "$desc ready=$ready" "$icon"
 }
 
 on_kill(){
@@ -114,10 +99,7 @@ on_exit(){
     cmd pushd
 }
 
-# Signal sent by hrmy-send to notify a keystroke
-trap on_keyup SIGUSR1
-# Signal received from daemon to change ready status
-trap on_ready SIGUSR2
+
 
 trap on_exit EXIT
 trap on_kill SIGINT SIGTERM SIGQUIT
@@ -128,7 +110,6 @@ desc=""
 icon=""
 check=""
 pid=$(pidof -s -x $self);
-# flags
 ready=0
 
 #pid=`pgrep -f -n "/bin/bash ${BASH_SOURCE[0]}"`
