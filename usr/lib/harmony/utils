@@ -167,8 +167,11 @@ get_prefix(){
 # Trigger an event
 #
 trigger(){
-    [ -n "$1" ] || cmd declare -F on_$1 || return 1
-    on_$1
+    local event="$1"
+    shift
+    [ -n "$event" ] || cmd declare -F on_$event || return 1
+    on_$event $@
+    return $?
 }
 
 

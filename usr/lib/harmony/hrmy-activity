@@ -1,11 +1,32 @@
 #!/bin/bash
 # Harmony Remote Daemon Activity Monitor
 # 
-[ -z "$HARMONY_ENVIRONNEMENT_LOADED" ] || exit 1
+[ -n "$HARMONY_ENVIRONNEMENT_LOADED" ] || exit 1
 . /etc/default/harmony
 . utils
+. activity
 
+# Checks vars
+for prop in activities userspace; do
+    [ -n "${!prop}" ] || exit 2
+    [ -d "${!prop}" ] || exit 2
+done
+
+#main vars
 self=$(basename ${BASH_SOURCE[0]})
+name=""
+desc=""
+icon=""
+pid=""
 
 
 
+
+
+
+
+
+if [ -z "RUN_AS_DEAMON" ]; then
+noop
+
+fi

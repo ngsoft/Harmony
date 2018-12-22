@@ -55,30 +55,33 @@ on_daemon_stop(){
 }
 
 on_start(){
-    local activity=$2
-
-
-
+    local act current
+    current=`activity.name`
+    act="$1"
+    [ -n "$act" ] || return 1
+    [ "$act" == "$current" ] && return 1
+    [ -n "$current" ] && trigger stop
+    trigger lock
+    hrmy-activity $act
+    return $?
 }
 
 on_stop(){
-    local current pid
-    local activity=$2
-    if [ -r "$userspace/activity.name" ]; then
-        current=`cat $userspace/activity.name`
-        if [ -z "$activity" ]; then
-            cmd killall 
-        fi
-        if [ -n "$current" ] || [ "$current" == "$activity" ]; then
-            pid=`cat $userspace/activity.pid`
-            [ -n "$pid" ] || return 1
+    local current pid act
+    act="$2"
+    current=`activity.name`
+    pid=`activity.pid`
+    if [ -n "$current" ]; then
+        if [ -z "$act" ] || [ "$act" == "$current" ]; then
+            trigger lock
             cmd kill $pid
             while cmd ps -p $pid; do
                 sleep .2
             done
-        fi
+            return 0
+        fi    
     fi
-    return 0
+    return 1
 }
 
 on_send(){
@@ -86,12 +89,17 @@ on_send(){
     return $?
 }
 
+on_lock(){
+    cmd touch $lockfile
+    lockset=1
+}
+
 on_exit(){
     [ $lockset == 1 ] && cmd rm $lockfile
 }
 
 
-cmd pidof harmonyd || trigger daemon_start
+cmd pidof -x harmonyd || trigger daemon_start
 [ -n "$1" ] || exit 0
 
 export HARMONY_ENVIRONNEMENT_LOADED=1
@@ -103,16 +111,19 @@ lockset=0
 
 [ -e "$lockfile" ] && lock=1
 
+. activity
+
+trap on_exit EXIT
+
 case "$1" in
     start|send)
-        [ $lock == 1 ] && exit
+        [ $lock == 1 ] && exit 1
         [ -n "$2" ] || trigger usage
         trigger $1 $2
         exit $?
     ;;
     stop)
-        [ $lock == 1 ] && exit
-        cmd touch $lockfile
+        [ $lock == 1 ] && exit 1
         trigger stop $2
         exit $?
     ;;

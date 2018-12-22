@@ -3,31 +3,19 @@
 
 [ -n "$userspace" ] || exit 1
 
-activity(){
-    activity.name
-
-}
 
 activity.name(){
-    printf ""
-    [ -r "$userspace/activity.name" ] || return
-    cat "$userspace/activity.name"
+    cat "$userspace/activity.name" 2> /dev/null   
 }
 
 activity.desc(){
-    printf ""
-    [ -r "$userspace/activity.desc" ] || return
-    cat "$userspace/activity.desc"
+    cat "$userspace/activity.desc" 2> /dev/null 
 }
 
 activity.icon(){
-    printf ""
-    [ -r "$userspace/activity.icon" ] || return
-    cat "$userspace/activity.icon"
+    cat "$userspace/activity.icon" 2> /dev/null 
 }
 
 activity.pid(){
-    printf ""
-    [ -r "$userspace/activity.pid" ] || return
-    cat "$userspace/activity.pid"
+    cat "$userspace/activity.pid" 2> /dev/null
 }

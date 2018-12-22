@@ -163,6 +163,7 @@ on_exit(){
     trigger stop &
     cmd rm $pidfile
     cmd xinput enable "$device_name"
+    cmd killall hrmy-activity &
     notify "Stopping $description"
 }
 
