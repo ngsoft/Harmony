@@ -9,7 +9,7 @@
 
 if [ "$HARMONY_REAL_DAEMON" != "1" ]; then
     export HARMONY_REAL_DAEMON=1
-    ${BASH_SOURCE[0]} &
+    ${BASH_SOURCE[0]} > /dev/null &
     exit 0
 fi
 

@@ -59,7 +59,7 @@ activity.send $1 && exit 0
 # Also sends key to <main> activity
 if [ -r "$profile_root/main/main.keys" ]; then
     cmd pushd "$profile_root/main"
-        bash "$profile_root/main/main.keys" $1
+        bash "$profile_root/main/main.keys" $1 > /dev/null
     cmd popd
 fi
 

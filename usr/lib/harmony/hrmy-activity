@@ -51,7 +51,7 @@ activity.exists $id || throw_error "Activity $id does not exists."
 # Caller needs a return value so we daemonize the script there
 if [ -z "$ACTIVITY_RUN_AS_DAEMON" ]; then
     export ACTIVITY_RUN_AS_DAEMON=1
-    $self $id &
+    cmd $self $id &
     exit 0
 fi
 unset ACTIVITY_RUN_AS_DAEMON
@@ -74,19 +74,32 @@ on_init(){
 }
 
 on_start(){
-
-    noop
+    notify "Starting $desc activity ..." "$icon"
+    if ! cmd pidof -x $check; then
+        if act.canstart; then
+            act.start
+        else
+            cmd $check &
+        fi
+    fi
+    while ! cmd pidof -x $check; then
+        sleep .2
+    fi 
+    ready=1
 }
 on_stop(){
-    noop
+    notify "Ending $desc activity ..." "$icon"
+    if act.canstop; then
+        act.stop
+    else
+        cmd killall check
+    fi
 }
 
 
 on_check(){
     [ $ready == 1 ] || return
-    echo on_check
-    #cmd pidof -x $check || exit 0
-    noop
+    cmd pidof -x $check || exit 0
 }
 
 on_kill(){
@@ -111,10 +124,6 @@ icon=""
 check=""
 pid=$(pidof -s -x $self);
 ready=0
-
-#pid=`pgrep -f -n "/bin/bash ${BASH_SOURCE[0]}"`
-
-echo $pid
 
 trigger init
 

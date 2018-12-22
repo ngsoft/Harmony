@@ -31,7 +31,7 @@ activity.send(){
     [ -n "$1" ] || return 1
     activity.haskeys || return 1
     pushd `activity.path` > /dev/null 2>&1
-    bash `activity.id`.keys $1
+    bash `activity.id`.keys $1 > /dev/null
     local ret=$?
     popd > /dev/null 2>&1
     return $ret

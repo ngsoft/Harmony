@@ -4,7 +4,6 @@
 . activity
 
 
-
 case "$1" in
     ON)
         # Forces the screen to on
@@ -31,14 +30,15 @@ case "$1" in
         # if alarm is enabled will wake just before it triggers
         # sudo can be configured: %sudo	ALL=(ALL:ALL) NOPASSWD:ALL
         # for no password check on input
-        gksu "$prefix/usr/lib/harmony/sleep.until"
+        cmd gksu "$prefix/usr/lib/harmony/sleep.until"
+        #gksu -k sleep.until
 
     ;;
     SCREEN)
         # Use Power management to detect if screen is on
         # and toggles it on/off (be careful Kodi also manage dpms settings)
         # and put it on automatically
-        cmd screen.toggle
+        screen.toggle
     ;;
     ALARM)
         # Toggle on/off alarm clock, and stops running alarms
@@ -49,5 +49,3 @@ case "$1" in
         . www.key
     ;;
 esac
-
-echo "reserved $1"
