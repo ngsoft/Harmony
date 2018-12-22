@@ -1,0 +1,51 @@
+#!/bin/bash
+
+. utils
+. activity
+
+
+
+case "$1" in
+    ON)
+        # Forces the screen to on
+        # Use wake key on Flirc + another and create a sequence 
+        # with My Harmony that triggers both buttons
+        xset -dpms
+        xset +dpms
+    ;;
+    OFF)
+        cmd gksu shutdown -h now
+    ;;
+    REBOOT)
+        cmd gksu shutdown -r now
+    ;;
+    SLEEP)
+        # Stops all running activities
+        # Before performing action
+        cmd killall hrmy-activity
+        while cmd pidof -x hrmy-activity; do
+            sleep .2
+        done
+        # Can be configured to put a wake hour [0-23]
+        # usage sleep.until <hour>
+        # if alarm is enabled will wake just before it triggers
+        # sudo can be configured: %sudo	ALL=(ALL:ALL) NOPASSWD:ALL
+        # for no password check on input
+        cmd gksu sleep.until
+
+    ;;
+    SCREEN)
+        # Use Power management to detect if screen is on
+        # and toggles it on/off (be careful Kodi also manage dpms settings)
+        # and put it on automatically
+        cmd screen.toggle
+    ;;
+    ALARM)
+        # Toggle on/off alarm clock, and stops running alarms
+        # Settings are stored in /tmp, so forgotten after reboot
+        noop
+    ;;
+    WWW)
+        . www.key
+    ;;
+esac

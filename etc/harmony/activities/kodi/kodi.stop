@@ -1,2 +1,7 @@
-killall kodi.bin
-rm ~/kodi_*.log > /dev/null 2>&1
+#!/bin/bash
+# Shutdown script
+# gets launched when activity is stopped
+#
+. utils
+cmd killall kodi.bin
+cmd rm ~/kodi_*.log > /dev/null 2>&1

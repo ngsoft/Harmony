@@ -1,8 +1,6 @@
 #!/bin/bash
-# Receive keys as first argument,
-# Usefull for apps that don't support LIRC
-# or to create macros with xdotool
-
+# Receive all the inputs from LIRC
+# and performs custom action for each keystroke
 
 case "$1" in
     1)

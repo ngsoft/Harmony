@@ -19,12 +19,43 @@ usage(){
 
 [ -n "$1" ] || usage
 [ -d $profile_root ] || exit 1
-
+self=$(basename ${BASH_SOURCE[0]})
 reserved="^(ON|OFF|REBOOT|SLEEP|SCREEN|ALARM|WWW)$"
+keystore="$userspace/activity.key"
+lockfile="$userspace/$self.lock"
+lockset=0
 
+[ -e $lockfile ] && exit 1
+
+on_lock(){
+    lockset=1
+    cmd touch $lockfile
+}
+
+on_exit(){
+    [ $lockset == 1 ] && cmd rm $lockfile
+}
+
+trigger lock
 if [[ $1 =~ $reserved ]]; then
-    [ -e $profile_root/keyhandler.sh ] && bash $profile_root/keyhandler.sh $1
+    if [ -r "$profile_root/main/reserved.keys" ]; then
+        cmd pushd "$profile_root/main"
+            bash "$profile_root/main/reserved.keys" $1
+        cmd popd
+    fi
     exit 0
+fi
+
+# Sends Notification to activity that a key has been pushed
+printf "$1" > $keystore
+pid=`activity.pid`
+[ -n "$pid" ] && cmd kill -10 $pid
+
+# Also sends key to passive activity
+if [ -r "$profile_root/main/main.keys" ]; then
+    cmd pushd "$profile_root/main"
+        bash "$profile_root/main/main.keys" $1
+    cmd popd
 fi
 
 

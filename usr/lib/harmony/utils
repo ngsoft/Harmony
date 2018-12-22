@@ -174,4 +174,10 @@ trigger(){
     return $?
 }
 
-
+#
+# Checks if daemon is ready
+#
+harmony.ready(){
+    cmd test -e "$userspace/harmony.ready"
+    return $?
+}

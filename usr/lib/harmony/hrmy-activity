@@ -17,11 +17,7 @@ done
 
 #main vars
 self=$(basename ${BASH_SOURCE[0]})
-actname="$1"
-name=""
-desc=""
-icon=""
-pid=""
+id="$1"
 fileprefix="$userspace/activity.%s"
 pidfile=`printf $fileprefix pid`
 
@@ -29,43 +25,117 @@ pidfile=`printf $fileprefix pid`
 #if already loaded activity
 [ -r "$pidfile" ] && exit 1
 
-
+# Some properties
 act.path(){
-    printf "$activities/%s" $actname
-}
-act.exists(){
-    cmd test -r "`act.path`/$actname.conf"
-    return $?
+    printf "$activities/%s" $id
 }
 act.canstart(){
-    cmd test -r "`act.path`/$actname.start"
+    cmd test -r "`act.path`/$id.start"
 }
 act.canstop(){
-    cmd test -r "`act.path`/$actname.stop"
+    cmd test -r "`act.path`/$id.stop"
 }
 act.start(){
     if act.canstart; then
-        bash "`act.path`/$actname.start" &
+        bash "`act.path`/$id.start" &
     fi
 }
 act.stop(){
     if act.canstop; then
-        bash "`act.path`/$actname.stop" &
+        bash "`act.path`/$id.stop" &
     fi
 }
 
-t(){
-    local name desc
-    . "`act.path`/$actname.conf"
+activity.exists $id || throw_error "Activity $id does not exists."
+
+# Caller needs a return value so we daemonize the script there
+if [ -z "$ACTIVITY_RUN_AS_DAEMON" ]; then
+    export ACTIVITY_RUN_AS_DAEMON=1
+    $self $id &
+    exit 0
+fi
+unset ACTIVITY_RUN_AS_DAEMON
+
+# Then we performs actions
+
+# Loads config and checks if correct
+on_init(){
+    local prop
+    . `act.path`/$id.conf
+    for prop in name desc check; do
+        [ -n "${!prop}" ] || throw_error_notify "Activity $id cannot start, missing $prop in `act.path`/$id.conf"
+        printf "${!prop}" > `printf $fileprefix $prop`
+    done
+    printf "$id" > `printf $fileprefix "id"`
+    printf "$icon" > `printf $fileprefix "icon"`
+    printf "$pid" > `printf $fileprefix "pid"`
+    cmd pushd "`act.path`"
+    #trigger start
+}
+
+on_keyup(){
+    [ $ready == 1 ] || return
+    activity.haskeys || return
+    local key=`activity.key`
+
+noop
 }
 
 
-act.exists $1 || exit 1
+on_start(){
+    [ $ready == 1 ] || return
+    noop
+}
+on_stop(){
+    noop
+}
 
-t
-echo $name $desc
 
-if [ -z "RUN_AS_DEAMON" ]; then
-noop
+on_check(){
+    [ $ready == 1 ] || return
+    #cmd pidof -x $check || exit 0
+    noop
+}
 
-fi
+on_ready(){
+    ready=0
+    harmony.ready && ready=1
+}
+
+on_kill(){
+    exit 0
+}
+on_exit(){
+    trigger stop
+    #cleaning up
+    cmd rm `printf $fileprefix "*"`
+    cmd pushd
+}
+
+# Signal sent by hrmy-send to notify a keystroke
+trap on_keyup SIGUSR1
+# Signal received from daemon to change ready status
+trap on_ready SIGUSR2
+
+trap on_exit EXIT
+trap on_kill SIGINT SIGTERM SIGQUIT
+
+#gets loaded from $id.conf
+name=""
+desc=""
+icon=""
+check=""
+pid=$(pidof -s -x $self);
+# flags
+ready=0
+
+#pid=`pgrep -f -n "/bin/bash ${BASH_SOURCE[0]}"`
+
+echo $pid
+
+trigger init
+
+while true; do
+    trigger check
+    sleep 1
+done

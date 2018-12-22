@@ -51,15 +51,16 @@ on_daemon_stop(){
             sleep .2
         done
     fi
-    return $0
+    return 0
 }
 
 on_start(){
     local act current
-    current=`activity.name`
+    current=`activity.id`
     act="$1"
     [ -n "$act" ] || return 1
     [ "$act" == "$current" ] && return 1
+    activity.exists $act || throw_error "Activity $act does not exists."
     [ -n "$current" ] && trigger stop
     trigger lock
     hrmy-activity $act
@@ -68,8 +69,8 @@ on_start(){
 
 on_stop(){
     local current pid act
-    act="$2"
-    current=`activity.name`
+    act="$1"
+    current=`activity.id`
     pid=`activity.pid`
     if [ -n "$current" ]; then
         if [ -z "$act" ] || [ "$act" == "$current" ]; then
