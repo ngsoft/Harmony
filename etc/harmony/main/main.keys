@@ -3,6 +3,9 @@
 # and performs custom action for each keystroke
 
 case "$1" in
+    EXIT)
+        harmony stop
+    ;;
     RED)
         harmony start clementine
     ;;

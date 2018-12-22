@@ -68,15 +68,16 @@ on_start(){
 }
 
 on_stop(){
-    local current pid act
+    local current pid act check
     act="$1"
     current=`activity.id`
     pid=`activity.pid`
+    check=`activity.check`
     if [ -n "$current" ]; then
         if [ -z "$act" ] || [ "$act" == "$current" ]; then
             trigger lock
             cmd kill $pid
-            while cmd ps -p $pid; do
+            while pidof -x $check; do
                 sleep .2
             done
             return 0

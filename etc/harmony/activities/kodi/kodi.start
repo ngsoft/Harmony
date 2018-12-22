@@ -5,6 +5,8 @@
 
 . utils
 
-# Needs 5.1 on my Home Theater
-export AE_SINK=ALSA
-cmd kodi &
+cmd pushd $HOME
+    # Needs 5.1 on my Home Theater
+    export AE_SINK=ALSA
+    cmd kodi &
+cmd popd

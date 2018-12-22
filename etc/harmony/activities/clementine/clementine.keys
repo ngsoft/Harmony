@@ -13,10 +13,6 @@ case "$1" in
     INFO)
         player.osd
     ;;
-    EXIT)
-        player.quit
-    ;;
-
 
     PAGEUP)
         player.window.show
@@ -72,14 +68,7 @@ case "$1" in
     BACK)
         player.goto 1
     ;;
-
-
-
-
-
-
-
-    
+   
     VOLUME+)
         player.volume.up
     ;;

@@ -186,6 +186,10 @@ on_timer(){
     cmd $flirc status || trigger init
 }
 
+on_reload(){
+    harmony daemon restart &
+}
+
 on_kill(){    
     exit 0
 }
@@ -210,6 +214,7 @@ trap on_change SIGUSR1
 
 trap on_exit EXIT
 trap on_kill SIGINT SIGTERM SIGQUIT
+trap on_reload SIGHUP SIGABRT
 
 notify "Starting $description."
 cmd rm $pidfile

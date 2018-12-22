@@ -3,5 +3,5 @@
 # gets launched when activity is stopped
 #
 . utils
-cmd killall kodi.bin
+cmd killall -9 kodi.bin #little over the top, but my kodi is very slow to shut down
 cmd rm ~/kodi_*.log > /dev/null 2>&1
