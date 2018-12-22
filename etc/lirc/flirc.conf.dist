@@ -9,7 +9,7 @@ begin remote
     toggle_bit      0
     driver          devinput
     min_repeat      1 
-    suppress_repeat 3
+    suppress_repeat 5
         begin codes
         KEY_A                   30
         KEY_B                   48
