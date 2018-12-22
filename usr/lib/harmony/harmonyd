@@ -40,6 +40,7 @@ flirc=/etc/init.d/flirc
 irprofiles=$prefix/etc/lirc/irexec.conf.d
 self=$(basename ${BASH_SOURCE[0]})
 pidfile=$userspace/$self.pid
+readyfile=$userspace/harmony.ready
 
 [ -n "$logfile" ] || logfile=/tmp/harmony.log
 
@@ -151,6 +152,13 @@ on_change(){
             xinput disable "$device_name"
         fi
     fi
+    trigger ready
+}
+
+on_ready(){
+    cmd rm $readyfile
+    [ $device_on == 1 ] && touch $readyfile
+    cmd killall -12 hrmy-activity
 }
 
 on_timer(){
@@ -166,6 +174,7 @@ on_exit(){
     device_on=0
     trigger stop &
     cmd rm $pidfile
+    cmd rm $readyfile
     cmd xinput enable "$device_name"
     cmd killall hrmy-activity &
     notify "Stopping $description"
@@ -183,7 +192,9 @@ trap on_kill SIGINT SIGTERM SIGQUIT
 
 notify "Starting $description."
 cmd rm $pidfile
-pgrep -f -n $self > $pidfile
+cmd rm $readyfile
+pidof -s -x $self > $pidfile
+#pgrep -f -n $self > $pidfile
 trigger init
 
 while true; do

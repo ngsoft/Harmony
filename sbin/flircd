@@ -21,14 +21,13 @@ fi
 pgrep -f -n $0 > $pidfile
 
 on_signal(){
-    local pid=$(pgrep -n harmonyd)
-    [ -n "$pid" ] && kill -10 $pid
+    cmd killall -10 harmonyd
 }
 
 
 on_start(){
     [ -d "/run/lirc" ] || mkdir -p "/run/lirc"
-    cmd $lirc -d $device &
+    cmd $lirc -d $device
     cmd ln -fs /run/lirc/lircd /dev/lircd
     trigger signal
 }

@@ -86,7 +86,7 @@ on_stop(){
 }
 
 on_send(){
-    hmry-send $2
+    hmry-send $1
     return $?
 }
 

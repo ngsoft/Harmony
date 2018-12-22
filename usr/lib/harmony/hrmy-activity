@@ -70,7 +70,8 @@ on_init(){
     printf "$icon" > `printf $fileprefix "icon"`
     printf "$pid" > `printf $fileprefix "pid"`
     cmd pushd "`act.path`"
-    #trigger start
+    trigger ready
+    trigger start
 }
 
 on_keyup(){
@@ -100,6 +101,7 @@ on_check(){
 on_ready(){
     ready=0
     harmony.ready && ready=1
+    notify "$desc ready=$ready" "$icon"
 }
 
 on_kill(){
