@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ -z "$prefix" ] || [ ! -d "$prefix" ]; then
+    prefix="$(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd && popd > /dev/null 2>&1)"
+    prefix="$(dirname "$(dirname "$(dirname "$prefix")")")"
+fi
+
+# Get env variables
+[ -r "$prefix/usr/lib/harmony/hrmy-env" ] || exit 1
+. $prefix/usr/lib/harmony/hrmy-env
 
 # This is a general-purpose function to ask Yes/No questions in Bash, either
 # with or without a default answer. It keeps repeating the question until it
@@ -78,8 +86,9 @@ throw_error(){
 # Log a message into a declared $logfile
 #
 log(){
-    [ -n "$logfile" ] || [ "$disable_log" != "1" ] || return
-    [ -e $logfile ] || cmd touch $logfile
+    [ -n "$logfile" ] || return
+    [ "$disable_log" != "1" ] || return
+    [ -e "$logfile" ] || cmd touch $logfile
     [[ -n "$@" ]] &&  echo "$(date "+%Y-%m-%d %H:%M") | $@" >> $logfile 2>&1
 }
 
@@ -161,3 +170,5 @@ trigger(){
     [ -n "$1" ] || cmd declare -F on_$1 || return 1
     on_$1
 }
+
+

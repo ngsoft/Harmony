@@ -5,24 +5,28 @@
 # With flirc service it detects if the usb is plugged in and launch the process when needed
 #
 
-[ $(pgrep -f -c "/bin/bash ${BASH_SOURCE[0]}") != 1 ] && [ "$harmony_real_daemon" != "1" ] && exit 1
+[ $(pgrep -f -c "/bin/bash ${BASH_SOURCE[0]}") != 1 ] && [ "$HARMONY_REAL_DAEMON" != "1" ] && exit 1
 
-if [ "$harmony_real_daemon" != "1" ]; then
-    export harmony_real_daemon=1
+if [ "$HARMONY_REAL_DAEMON" != "1" ]; then
+    export HARMONY_REAL_DAEMON=1
     ${BASH_SOURCE[0]} &
     exit 0
 fi
 
-unset harmony_real_daemon
+unset HARMONY_REAL_DAEMON
 
 # Can be overriden inside < /etc/default/harmony >
-
 check_intervals=30
 disable_log=0
 description="Harmony Remote Daemon"
 
 [ ! -r /etc/default/harmony ] && echo "$description not installed, please run hrmy-setup."  && exit 1
 . /etc/default/harmony
+
+if [ ! -e $prefix/usr/lib/harmony/utils ]; then
+    echo "$(basename ${BASH_SOURCE[0]}) cannot find libraries." >&2
+    exit 1
+fi
 . $prefix/usr/lib/harmony/utils
 
 for process in lircd irexec; do
@@ -34,6 +38,8 @@ sudo=gksu
 sudo=sudo
 flirc=/etc/init.d/flirc
 irprofiles=$prefix/etc/lirc/irexec.conf.d
+self=$(basename ${BASH_SOURCE[0]})
+pidfile=$userspace/$self.pid
 
 [ -n "$logfile" ] || logfile=/tmp/harmony.log
 if [ $disable_log != 1 ]; then
@@ -44,11 +50,6 @@ fi
 export DISPLAY=:0
 export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
 export logfile
-export profile_root=$prefix/etc/$prog
-export modules=$profile_root/modules
-export activities=$profile_root/activities
-# Store current active activity path
-export current_activity=""
 
 # Some flags
 device_on=0
@@ -157,6 +158,7 @@ on_exit(){
     #prevents start to load
     device_on=0
     trigger stop &
+    cmd rm $pidfile
     cmd xinput enable "$device_name"
     notify "Stopping $description"
 }
@@ -172,6 +174,8 @@ trap on_exit EXIT
 trap on_kill SIGINT SIGTERM SIGQUIT
 
 notify "Starting $description."
+cmd rm $pidfile
+pgrep -f -n $self > $pidfile
 trigger init
 
 while true; do

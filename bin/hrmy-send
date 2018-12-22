@@ -7,13 +7,10 @@
 . $prefix/usr/lib/harmony/utils
 
 #using harmonyd ?
-if [ -z "$profile_root" ]; then
+if ! echo $PATH | grep -q "lib/harmony"; then
     export DISPLAY=:0
     export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
     export logfile
-    export profile_root=$prefix/etc/harmony
-    export modules=$profile_root/modules
-    export activities=$profile_root/activities
 fi
 
 usage(){

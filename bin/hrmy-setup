@@ -152,13 +152,14 @@ install_shortcuts(){
         cmd mkdir ~/.config/autostart
         cmd chown $SUDO_USER:$SUDO_USER ~/.config/autostart
     fi
-    ln -s $dest ~/.config/autostart
+    cmd cp -s $dest ~/.config/autostart
 
 }
 
 remove_shortcuts(){
     cmd rm ~/.local/share/icons/hicolor/48x48/apps/harmony.png
     cmd rm ~/.local/share/applications/harmony.desktop
+    cmd rm ~/.config/autostart/harmony.desktop
 }
 
 if echo "$@" | grep "\-r" > /dev/null 2>&1; then

@@ -4,10 +4,24 @@
 
 [ ! -r /etc/default/harmony ] && echo "Harmony Remote Daemon not installed, please run hrmy-setup."  && exit 1
 . /etc/default/harmony
+
+if [ ! -e $prefix/usr/lib/harmony/utils ]; then
+    echo "$(basename ${BASH_SOURCE[0]}) cannot find libraries." >&2
+    exit 1
+fi
 . $prefix/usr/lib/harmony/utils
 
-
+# Launch daemon on first run or if it's killed
 cmd pidof -x harmonyd || $prefix/usr/lib/harmony/harmonyd &
 
+[ -n "$logfile" ] || logfile=/tmp/harmony.log
 
+if [ -z "$profile_root" ]; then
+    export DISPLAY=:0
+    export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+    export logfile
+    export HARMONY_ENVIRONNEMENT_LOADED=1
+fi
+
+self=$(basename ${BASH_SOURCE[0]})
 

@@ -1,0 +1,12 @@
+#!/bin/bash
+# Harmony Remote Daemon Activity Monitor
+# 
+[ -z "$HARMONY_ENVIRONNEMENT_LOADED" ] || exit 1
+. /etc/default/harmony
+
+
+
+. utils
+
+
+
