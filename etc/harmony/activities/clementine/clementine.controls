@@ -1,0 +1,186 @@
+#!/bin/bash
+# Control class for clementine
+#
+#Usage: clementine [options] [URL(s)]
+#
+#Player options:
+#  -p, --play                Start the playlist currently playing
+#  -t, --play-pause          Play if stopped, pause if playing
+#  -u, --pause               Pause playback
+#  -s, --stop                Stop playback
+#  -q, --stop-after-current  Stop playback after current track
+#  -r, --previous            Skip backwards in playlist
+#  -f, --next                Skip forwards in playlist
+#  -v, --volume <value>      Set the volume to <value> percent
+#  --volume-up               Increase the volume by 4%
+#  --volume-down             Decrease the volume by 4%
+#  --volume-increase-by      Increase the volume by <value> percent
+#  --volume-decrease-by      Decrease the volume by <value> percent
+#  --seek-to <seconds>       Seek the currently playing track to an absolute position
+#  --seek-by <seconds>       Seek the currently playing track by a relative amount
+#  --restart-or-previous     Restart the track, or play the previous track if within 8 seconds of start.
+#
+#Playlist options:
+#  -c, --create <name>       Create a new playlist with files/URLs
+#  -a, --append              Append files/URLs to the playlist
+#  -l, --load                Loads files/URLs, replacing current playlist
+#  -k, --play-track <n>      Play the <n>th track in the playlist
+#
+#Other options:
+#  -o, --show-osd            Display the on-screen-display
+#  -y, --toggle-pretty-osd   Toggle visibility for the pretty on-screen-display
+#  -g, --language <lang>     Change the language
+#      --quiet               Equivalent to --log-levels *:1
+#      --verbose             Equivalent to --log-levels *:3
+#      --log-levels <levels> Comma separated list of class:level, level is 0-3
+#      --version             Print out version information
+#
+# to empty playlist --load /dev/null
+
+
+. utils
+clementine_pid="`pidof -s clementine`"
+
+
+
+#$1 <dir> $2 <trackcount> 
+randomize(){
+    [ -n "$1" ] || return 1
+    [ -r "$1" ] || return 1
+    local track_count rand
+    case "$2" in
+        (*[^0-9]*|'')
+            track_count=
+        ;;
+        (*)
+            track_count=$2
+        ;;
+    esac
+    rand=`find "$1" -type f \( -name "*.mp3" -or -name "*.m4a" \) 2> /dev/null | sort --random-sort`
+    [ -z "$track_count" ] || rand=`echo "$rand" | head -n $track_count`
+    echo "$rand"
+}
+
+
+player(){
+    cmd pidof -x clementine || cmd clementine &
+    while ! cmd pidof clementine; do
+        sleep .2
+    done
+    [ -n "$clementine_pid" ] || clementine_pid=`pidof -s clementine`
+    clementine $@
+}
+
+player.playpause(){
+    player --play-pause
+}
+
+
+player.play(){
+    player --play
+}
+player.pause(){
+    player --pause
+}
+player.stop(){
+    player --stop
+}
+
+player.next(){
+    player --next
+}
+
+player.prev(){
+    player --previous
+}
+
+player.seek(){
+    [ -n "$1" ] || return 1
+    player --seek-by $1
+}
+
+player.goto(){
+    [ -n "$1" ] || return 1
+    player --seek-to $1
+}
+
+player.rewind(){
+    player --restart-or-previous
+}
+
+player.fastforward(){
+    player.seek 60
+}
+
+player.volume(){
+    [ -n "$1" ] || return 1
+    player --volume $1
+}
+
+player.volume.up(){
+    player --volume-increase-by 20
+}
+
+player.volume.down(){
+    player --volume-decrease-by 20
+}
+player.volume.mute(){
+    player.volume 0
+}
+
+player.osd(){
+    player --show-osd
+}
+
+player.start(){
+    player
+}
+
+player.quit(){
+    cmd killall -9 clementine 
+}
+
+player.window(){
+    [ -n "$clementine_pid" ] || player
+    xdotool search --pid $clementine_pid | tail -1
+}
+
+player.window.show(){
+    cmd xdotool windowactivate `player.window` --sync
+}
+
+player.window.focus(){
+    player.window.show
+}
+
+player.window.minimize(){
+    cmd xdotool windowminimize `player.window` --sync
+}
+
+player.window.kill(){
+    cmd xdotool windowkill `player.window` --sync
+}
+
+player.playlist.load(){
+    [ -n "$1" ] || return 1
+    player --load $@
+}
+
+player.playlist.randomize(){
+    player.playlist.empty
+    sleep .5
+    # Autoconfiguration for localized folder names ~/MyMusic
+    [ -r ~/.config/user-dirs.dirs ] && . ~/.config/user-dirs.dirs
+    [ -n "$XDG_MUSIC_DIR" ] || XDG_MUSIC_DIR=$HOME
+    local source="$2"
+    local max="$1"
+    [ -n "$source" ] || source="$XDG_MUSIC_DIR"
+    randomize "$source" "$max" | xargs -d '\n' clementine --load > /dev/null 2>&1 &
+    player -p
+}
+
+player.playlist.empty(){
+    player --load /dev/null
+    player -f
+}
+

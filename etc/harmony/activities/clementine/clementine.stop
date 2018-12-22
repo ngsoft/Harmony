@@ -1,0 +1,4 @@
+#!/bin/bash
+
+. clementine.controls
+player.quit

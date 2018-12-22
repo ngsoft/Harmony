@@ -1,0 +1,95 @@
+#!/bin/bash
+
+. clementine.controls
+
+case "$1" in
+    
+    EXIT)
+        player.quit
+    ;;
+    INFO|CONTEXT)
+        player.osd
+    ;;
+    INFO)
+        player.osd
+    ;;
+    EXIT)
+        player.quit
+    ;;
+
+
+    PAGEUP)
+        player.window.show
+    ;;
+    PAGEDOWN)
+        player.window.minimize
+    ;;
+
+    RED)
+        player.playlist.randomize
+    ;;
+    GREEN)
+        #load some playlist
+        #player.playlist.load myplaylist.m3u
+        exit 1
+    ;;
+    YELLOW)
+        exit 1
+    ;;
+    BLUE)
+        exit 1
+    ;;
+    UP)
+        player.seek 30
+    ;;
+    DOWN)
+        player.seek -30
+    ;;
+    LEFT|PREVIOUS)
+        player.prev
+    ;;
+    RIGHT|NEXT)
+        player.next
+    ;;
+    SELECT|PLAYPAUSE)
+        player.playpause
+    ;;
+    PAUSE)
+        player.pause
+    ;;
+
+    REWIND)
+        player.rewind
+    ;;
+
+    FASTFORWARD)
+        player.fastforward
+    ;;
+
+    STOP|RECORD)
+        player.stop
+    ;;
+    BACK)
+        player.goto 1
+    ;;
+
+
+
+
+
+
+
+    
+    VOLUME+)
+        player.volume.up
+    ;;
+    VOLUME-)
+        player.volume.down
+    ;;
+    MUTE)
+        player.volume.mute
+    ;;
+    *)
+        exit 1
+    ;;
+esac

@@ -9,7 +9,7 @@
 
 if [ "$HARMONY_REAL_DAEMON" != "1" ]; then
     export HARMONY_REAL_DAEMON=1
-    ${BASH_SOURCE[0]} > /dev/null &
+    ${BASH_SOURCE[0]} #> /dev/null &
     exit 0
 fi
 
@@ -80,6 +80,23 @@ run_modules(){
         cmd popd
     done
 }
+
+#
+# Check if activity Executable is launched
+#
+run_activity(){
+    local name desc icon check conf id
+    for conf in $activities/*/*.conf; do
+        . $conf
+        id="$(basename "$(dirname "$conf")")"
+        [ "`activity.id`" == "$id" ] && continue
+        if cmd pidof $check; then
+            harmony start $id
+            break
+        fi
+    done
+}
+
 
 #
 # Checks if irexec processes are running correctly
@@ -200,7 +217,7 @@ cmd rm $readyfile
 if ! cmd pidof -x hrmy-activity; then
     cmd rm $userspace/activity.*
 fi
-
+. activity
 pidof -s -x $self > $pidfile
 #pgrep -f -n $self > $pidfile
 trigger init
@@ -208,6 +225,7 @@ trigger init
 while true; do
     run_checks
     run_modules
+    run_activity
     if [ $timer -gt $check_intervals ]; then 
         trigger timer
         #check_deps

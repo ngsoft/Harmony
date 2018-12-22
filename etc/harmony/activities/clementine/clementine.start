@@ -1,0 +1,16 @@
+
+# https://www.clementine-player.org/downloads
+#$ sudo add-apt-repository ppa:me-davidsansome/clementine
+#$ sudo apt-get update
+#$ sudo apt-get install clementine
+
+
+. clementine.controls
+
+pushd "$HOME" > /dev/null 2>&1
+
+player.playlist.randomize 120
+sleep .5
+player.window.minimize
+
+popd > /dev/null 2>&1
