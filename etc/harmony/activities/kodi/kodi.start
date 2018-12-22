@@ -1,3 +1,8 @@
+#!/bin/bash
+# Activity starting script
+# is launched when activity starts and if $checkrunning
+# inside conf is not already launched
+
 # Needs 5.1 on my Home Theater
 export AE_SINK=ALSA
 kodi &

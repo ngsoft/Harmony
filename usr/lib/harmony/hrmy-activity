@@ -1,7 +1,10 @@
 #!/bin/bash
 # Harmony Remote Daemon Activity Monitor
 # 
-[ -n "$HARMONY_ENVIRONNEMENT_LOADED" ] || exit 1
+
+[ -z "$1" ] && exit 1
+
+[ -n "$HARMONY_ENVIRONNEMENT_LOADED" ] || exit 2
 . /etc/default/harmony
 . utils
 . activity
@@ -14,17 +17,53 @@ done
 
 #main vars
 self=$(basename ${BASH_SOURCE[0]})
+actname="$1"
 name=""
 desc=""
 icon=""
 pid=""
+fileprefix="$userspace/activity.%s"
+pidfile=`printf $fileprefix pid`
 
 
+#if already loaded activity
+[ -r "$pidfile" ] && exit 1
 
 
+act.path(){
+    printf "$activities/%s" $actname
+}
+act.exists(){
+    cmd test -r "`act.path`/$actname.conf"
+    return $?
+}
+act.canstart(){
+    cmd test -r "`act.path`/$actname.start"
+}
+act.canstop(){
+    cmd test -r "`act.path`/$actname.stop"
+}
+act.start(){
+    if act.canstart; then
+        bash "`act.path`/$actname.start" &
+    fi
+}
+act.stop(){
+    if act.canstop; then
+        bash "`act.path`/$actname.stop" &
+    fi
+}
+
+t(){
+    local name desc
+    . "`act.path`/$actname.conf"
+}
 
 
+act.exists $1 || exit 1
 
+t
+echo $name $desc
 
 if [ -z "RUN_AS_DEAMON" ]; then
 noop

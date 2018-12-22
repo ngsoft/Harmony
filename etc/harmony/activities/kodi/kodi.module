@@ -1,5 +1,9 @@
+#!/bin/bash
+# Detects if Kodi launched by user without harmony command
+# and starts activity
+
 pidof kodi.bin > /dev/null 2>&1 || exit
 . activity
-[ `activity.name` == "kodi" ] && exit
+[ "`activity.name`" == "kodi" ] && exit
 
 harmony start kodi

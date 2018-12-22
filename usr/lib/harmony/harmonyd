@@ -68,11 +68,15 @@ timer=0
 run_modules(){
     [ $device_on == 1 ] || return
     local module
+    cmd pushd $modules
     for module in $modules/*.module; do
         cmd bash $module
     done
+    cmd popd
     for module in $activities/*/*.module; do
+        cmd pushd "`dirname "$module"`"
         cmd bash $module
+        cmd popd
     done
 }
 
