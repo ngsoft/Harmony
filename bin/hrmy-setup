@@ -4,7 +4,7 @@ prefix=$(dirname "$(pushd $(dirname "${BASH_SOURCE[0]}") > /dev/null 2>&1 && pwd
 logfile="/tmp/$(basename ${BASH_SOURCE[0]}).log"
 description="Harmony Remote Daemon"
 OVERRIDE=no
-binaries="harmony hrmyd hrmy-send flirc-fix"
+binaries="harmony hrmy-send flirc-fix"
 
 if [ ! -e $prefix/usr/lib/harmony/utils ]; then
     echo "$(basename ${BASH_SOURCE[0]}) cannot find libraries." >&2
@@ -113,7 +113,7 @@ install_binaries(){
         echo "Installing $bin"
         orig=$prefix/bin/$bin
         dest=/usr/local/bin/$bin
-        [ -e "$dest" ] || ln -s $orig $dest
+        [ -e "$dest" ] || cmd ln -s $orig $dest
     done
 }
 
@@ -136,6 +136,30 @@ rm_keymaps(){
     cmd rm /etc/lirc/lircd.conf.d/000flirc.conf
 }
 
+install_shortcuts(){
+    local dest=~/.local/share/icons/hicolor/48x48/apps/harmony.png
+    if [ ! -e $dest ]; then
+        cmd cp $prefix/usr/share/icons/hicolor/48x48/apps/harmony.png $dest
+        cmd chown $SUDO_USER:$SUDO_USER $dest
+    fi
+    dest=~/.local/share/applications/harmony.desktop
+    if [ ! -e $dest ]; then
+        cmd cp $prefix/usr/share/applications/harmony.desktop $dest
+        cmd chown $SUDO_USER:$SUDO_USER $dest
+        chmod a+x $dest
+    fi
+    if [ ! -r ~/.config/autostart ]; then
+        cmd mkdir ~/.config/autostart
+        cmd chown $SUDO_USER:$SUDO_USER ~/.config/autostart
+    fi
+    ln -s $dest ~/.config/autostart
+
+}
+
+remove_shortcuts(){
+    cmd rm ~/.local/share/icons/hicolor/48x48/apps/harmony.png
+    cmd rm ~/.local/share/applications/harmony.desktop
+}
 
 if echo "$@" | grep "\-r" > /dev/null 2>&1; then
     if ask "Do you want to remove $description ?" N; then
@@ -146,6 +170,7 @@ if echo "$@" | grep "\-r" > /dev/null 2>&1; then
         echo "Removing /etc/default/harmony"
         cmd rm /etc/default/harmony
         remove_binaries $binaries
+        remove_shortcuts
         rm_keymaps
         echo "Removing service flirc"
         remove_service flirc
@@ -179,6 +204,7 @@ if ask "Do you want to install $description ?" Y; then
     echo "Installing configuration file /etc/default/harmony"
     create_cfg_file
     install_binaries $binaries
+    install_shortcuts
     echo "All done, please reboot."
     notify "$description, installation complete."
 fi

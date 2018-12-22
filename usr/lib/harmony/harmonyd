@@ -47,6 +47,8 @@ export logfile
 export profile_root=$prefix/etc/$prog
 export modules=$profile_root/modules
 export activities=$profile_root/activities
+# Store current active activity path
+export current_activity=""
 
 # Some flags
 device_on=0

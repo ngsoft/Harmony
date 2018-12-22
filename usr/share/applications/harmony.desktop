@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Harmony
+Comment=Control your PC with your Harmony
+GenericName=harmony
+Exec=harmony
+Terminal=false
+X-MultipleArgs=false
+Icon=harmony
+Categories=Utility;
+StartupNotify=true
+X-GNOME-Autostart-enabled=true

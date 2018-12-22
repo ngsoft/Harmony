@@ -16,6 +16,15 @@ $irexec_data = [
 ];
 $dups = [];
 
+$nmap = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+$lircmap = [
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+    "<lircmap>",
+    "    <remote device=\"FLIRC\">"
+];
+$lircmapdest = __DIR__ . "/Lircmap.xml";
+
+
 foreach ([$clean, $kdir, $irexecdir] as $file) {
     if(!file_exists($file)) throw new Exception("Cannot find all the files", 1);
 }
@@ -30,6 +39,16 @@ foreach(scandir($kdir) as $file){
         $contents = str_replace("#", ";", $contents);
         if(($data = @parse_ini_string($contents, false, INI_SCANNER_RAW))){
             foreach($data as $replace => $new){
+                if($file !== "reserved.conf"){
+                    //lircmap
+                    $xmlkey = str_replace(['+', '-'], ['plus', 'minus'], $new);
+                    if(preg_match('/^[0-9]$/', $xmlkey)) {
+                        $xmlkey = $nmap[(int)$xmlkey];
+                    } elseif(!preg_match('/^F[0-9]+$/', $xmlkey)) $xmlkey = strtolower($xmlkey);
+                    $lircmap[] = str_repeat(" ", 8) . "<$xmlkey>$new</$xmlkey>";
+
+
+                }
                 $target_contents = preg_replace_callback('/('.$replace.'\s)[\s]+([0-9]+)\n/', function($matches) use($new){
                     $k = $matches[1];
                     $v = $matches[2];
@@ -55,6 +74,11 @@ foreach(scandir($kdir) as $file){
         }       
     }
 }
+
+$lircmap[] = "    </remote>\n</lircmap>";
+
+
+file_put_contents($lircmapdest, implode("\n", $lircmap));
 
 if($clean_contents !== $target_contents) file_put_contents($target, $target_contents);
 if(!empty($keymap_file_contents)) file_put_contents($keymaps, implode("\n", $keymap_file_contents));

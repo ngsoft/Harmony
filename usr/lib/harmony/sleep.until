@@ -1,0 +1,112 @@
+#!/usr/bin/sudo /bin/bash
+rtcn=rtc0
+lockfile=/tmp/$(basename $0)
+
+now=$(date '+%s' -d 'now')
+match_timestamp="^([0-9]+)$"
+
+usage()
+{
+	printf "Usage: $0 <hour[0~23]>\n"
+	return 1
+}
+
+setclock()
+{
+	sysfile=/sys/class/rtc/$rtcn/wakealarm
+	if [[ -e $sysfile ]]; then
+		if [[ $1 =~ $match_timestamp ]]; then
+			echo $1 | tee $sysfile > /dev/null 2>&1
+			return $?
+		else
+			printf "Wrong timestamp $1\n";
+			return 1
+		fi
+		printf "File $sysfile not found."
+	fi
+	return 1
+}
+resetclock()
+{
+	#printf "Resetting RTC Clock ...\n";
+	setclock 0
+	return $?
+}
+
+gotosleep()
+{
+	printf "Now, going to sleep, see you later...\n"
+	sleep 1
+	echo -n "mem" | tee /sys/power/state > /dev/null 2>&1
+	return $?
+}
+
+get_string()
+{
+	current=$(date '+%H')
+	day=tomorrow
+	if [[ $current -lt $1 ]]; then
+		day=today
+	fi
+	hour=$1
+	if [[ $1 -lt 10 ]]; then
+		hour="0$1"
+	fi
+	printf "$day $hour:00"
+}
+
+get_timestamp()
+{
+	date '+%s' -d "$(get_string $1)"
+}
+
+runclock()
+{
+	resetclock
+	timestamp=$(get_timestamp $1)
+	if [[ $timestamp =~ $match_timestamp ]]; then
+		printf "Setting next wake up to $(date -d @$timestamp) ...\n"
+		setclock $timestamp
+		if [[ $? == 0 ]]; then
+			gotosleep
+			return $?
+		fi
+	fi
+	return 1
+}
+
+end()
+{
+	sleep 1
+	resetclock
+	rm $lockfile
+	exit $1
+}
+
+if [[ -e $lockfile ]]; then
+	printf "$(basename $0) already running, aborting...\n"
+	exit 1
+fi
+touch $lockfile
+
+if [[ -z $1 ]]; then
+	printf "No hour supplied, normal sleep until user action.\n"
+	resetclock
+	gotosleep
+	end $?
+fi
+
+if [[ $1 =~ $match_timestamp ]]; then
+	if [[ $1 -gt 23 || $1 -lt 0 ]]; then
+		printf "Invalid hour $1 supplied.\n"
+		usage
+		rm $lockfile
+		exit 1
+	fi
+	runclock $1
+	end $?
+fi
+usage
+rm $lockfile
+exit 1
+

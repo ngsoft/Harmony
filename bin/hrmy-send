@@ -23,7 +23,7 @@ usage(){
 [ -n "$1" ] || usage
 [ -d $profile_root ] || exit 1
 
-reserved="^(on|off|reboot|sleep|screen|alarm|www)$"
+reserved="^(ON|OFF|REBOOT|SLEEP|SCREEN|ALARM|WWW)$"
 
 if [[ $1 =~ $reserved ]]; then
     [ -e $profile_root/keyhandler.sh ] && bash $profile_root/keyhandler.sh $1

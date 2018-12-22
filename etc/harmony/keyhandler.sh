@@ -4,25 +4,26 @@
 . utils
 
 case "$1" in
-    on)
-        echo "case 1"
+    ON)
+        xset -dpms
+        xset +dmps
     ;;
-    off)
-        echo "case 2 or 3"
+    OFF)
+        cmd gksu shutdown -P now
     ;;
-    reboot)
+    REBOOT)
+        cmd gksu shutdown -r now
+    ;;
+    SLEEP)
+        cmd sleep.until
+    ;;
+    SCREEN)
+        cmd screen.toggle
+    ;;
+    ALARM)
         echo "poop"
     ;;
-    sleep)
-        echo "poop"
-    ;;
-    screen)
-        echo "poop"
-    ;;
-    alarm)
-        echo "poop"
-    ;;
-    www)
+    WWW)
         cmd which firefox || exit
         if ! cmd pidof firefox; then
             cmd firefox &
