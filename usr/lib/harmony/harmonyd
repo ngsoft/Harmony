@@ -42,14 +42,17 @@ self=$(basename ${BASH_SOURCE[0]})
 pidfile=$userspace/$self.pid
 
 [ -n "$logfile" ] || logfile=/tmp/harmony.log
+
 if [ $disable_log != 1 ]; then
     cmd rm $logfile
     cmd touch $logfile
 fi
 
-export DISPLAY=:0
-export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
-export logfile
+if ! echo $PATH | grep -q "lib/harmony"; then
+    export DISPLAY=:0
+    export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
+    export logfile
+fi
 
 # Some flags
 device_on=0
@@ -66,10 +69,10 @@ run_modules(){
     [ $device_on == 1 ] || return
     local module
     for module in $modules/*.module; do
-        cmd bash $module &
+        cmd bash $module
     done
     for module in $activities/*/*.module; do
-        cmd bash $module &
+        cmd bash $module
     done
 }
 

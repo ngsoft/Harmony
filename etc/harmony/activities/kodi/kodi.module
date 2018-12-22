@@ -1,0 +1,5 @@
+pidof kodi.bin > /dev/null 2>&1 || exit
+. activity
+[ `activity.name` == "kodi" ] && exit
+
+harmony start kodi

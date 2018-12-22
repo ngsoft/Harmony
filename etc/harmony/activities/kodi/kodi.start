@@ -1,0 +1,3 @@
+# Needs 5.1 on my Home Theater
+export AE_SINK=ALSA
+kodi &

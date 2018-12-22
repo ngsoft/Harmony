@@ -1,0 +1,2 @@
+killall -9 kodi.bin
+rm ~/kodi_*.log > /dev/null 2>&1

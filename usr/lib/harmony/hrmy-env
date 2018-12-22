@@ -2,16 +2,16 @@
 
 [ -n "$prefix" ] || exit 1
 [ -d "$prefix" ] || exit 1
-
-profile_root=$prefix/etc/harmony
-modules=$profile_root/modules
-activities=$profile_root/activities
-userspace=~/.harmony
-
-if [ "$(id -u)" != "0" ] && [ ! -d "$userspace" ]; then
-    rm $userspace > /dev/null 2>&1
-    mkdir -p $userspace > /dev/null 2>&1
-    pushd $userspace > /dev/null 2>&1
-    userspace=`pwd`
-    popd > /dev/null 2>&1
+if [ -z "$profile_root" ]; then
+    export profile_root=$prefix/etc/harmony
+    export modules=$profile_root/modules
+    export activities=$profile_root/activities
+    export userspace=~/.harmony
+    if [ "$(id -u)" != "0" ] && [ ! -d "$userspace" ]; then
+        rm $userspace > /dev/null 2>&1
+        mkdir -p $userspace > /dev/null 2>&1
+        pushd $userspace > /dev/null 2>&1
+        userspace=`pwd`
+        popd > /dev/null 2>&1
+    fi
 fi

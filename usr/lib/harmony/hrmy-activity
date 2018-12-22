@@ -3,10 +3,9 @@
 # 
 [ -z "$HARMONY_ENVIRONNEMENT_LOADED" ] || exit 1
 . /etc/default/harmony
-
-
-
 . utils
+
+self=$(basename ${BASH_SOURCE[0]})
 
 
 

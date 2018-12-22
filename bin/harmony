@@ -11,17 +11,132 @@ if [ ! -e $prefix/usr/lib/harmony/utils ]; then
 fi
 . $prefix/usr/lib/harmony/utils
 
-# Launch daemon on first run or if it's killed
-cmd pidof -x harmonyd || $prefix/usr/lib/harmony/harmonyd &
-
 [ -n "$logfile" ] || logfile=/tmp/harmony.log
 
-if [ -z "$profile_root" ]; then
+if ! echo $PATH | grep -q "lib/harmony"; then
     export DISPLAY=:0
     export PATH=$prefix/bin:$prefix/usr/lib/harmony:$PATH
     export logfile
-    export HARMONY_ENVIRONNEMENT_LOADED=1
 fi
 
 self=$(basename ${BASH_SOURCE[0]})
 
+on_usage(){
+    echo "Harmony Remote Daemon Launcher"
+    echo "----------------------------------------------------------------"
+    echo "  usage: $self <action> [param]"
+    echo "    start    <activity>           Start an activity"
+    echo "    stop     [activity]           Stops an activity"
+    echo "    send     <ir_command>         Sends a command (ON|OFF ...)"
+    echo "    daemon   <start|stop|restart> Sends commands to the harmonyd"
+    echo "    help                          This help"
+    echo "----------------------------------------------------------------"
+    exit 1
+}
+
+on_daemon_start(){
+    cmd pidof -x harmonyd || $prefix/usr/lib/harmony/harmonyd &
+    while ! cmd pidof -x harmonyd; do
+        sleep .2
+    done    
+    return 0
+}
+on_daemon_stop(){
+    local pid
+    if [ -r "$userspace/harmonyd.pid" ]; then
+        pid=$(cat "$userspace/harmonyd.pid")
+        [ -n "$pid" ] || return 1
+        cmd kill $pid
+        while cmd ps -p $pid; do
+            sleep .2
+        done
+    fi
+    return $0
+}
+
+on_start(){
+    local activity=$2
+
+
+
+}
+
+on_stop(){
+    local current pid
+    local activity=$2
+    if [ -r "$userspace/activity.name" ]; then
+        current=`cat $userspace/activity.name`
+        if [ -z "$activity" ]; then
+            cmd killall 
+        fi
+        if [ -n "$current" ] || [ "$current" == "$activity" ]; then
+            pid=`cat $userspace/activity.pid`
+            [ -n "$pid" ] || return 1
+            cmd kill $pid
+            while cmd ps -p $pid; do
+                sleep .2
+            done
+        fi
+    fi
+    return 0
+}
+
+on_send(){
+    hmry-send $2
+    return $?
+}
+
+on_exit(){
+    [ $lockset == 1 ] && cmd rm $lockfile
+}
+
+
+cmd pidof harmonyd || trigger daemon_start
+[ -n "$1" ] || exit 0
+
+export HARMONY_ENVIRONNEMENT_LOADED=1
+
+#avoid loop starts
+lockfile=$userspace/harmony.lock
+lock=0
+lockset=0
+
+[ -e "$lockfile" ] && lock=1
+
+case "$1" in
+    start|send)
+        [ $lock == 1 ] && exit
+        [ -n "$2" ] || trigger usage
+        trigger $1 $2
+        exit $?
+    ;;
+    stop)
+        [ $lock == 1 ] && exit
+        cmd touch $lockfile
+        trigger stop $2
+        exit $?
+    ;;
+    daemon)
+        unset HARMONY_ENVIRONNEMENT_LOADED
+        case "$2" in
+            start)
+                trigger daemon_start
+            ;;
+            stop)
+                trigger daemon_stop
+                exit $?
+            ;;
+            restart)
+                trigger daemon_stop
+                trigger daemon_start
+            ;;
+            *)
+                trigger usage
+            ;;
+        esac    
+    ;;
+    *|help)
+        trigger usage
+    ;;
+esac
+exit 0
