@@ -1,0 +1,150 @@
+#!/bin/bash
+# Basic xdotool keyboard interface for VLC
+
+. utils
+
+[ -n "$check" ] || check=vlc
+cmd which $check || exit
+
+
+vlc_pid=`pidof -s $check`
+
+
+
+player.playpause(){
+    player.send space
+}
+
+player.play(){
+    player.send space
+}
+player.pause(){
+    player.send space
+}
+
+player.stop(){
+    player.send s
+}
+
+player.next(){
+    player.send n
+}
+
+player.prev(){
+    player.send p
+}
+
+player.rewind(){
+    player.send Ctrl+Left
+}
+
+player.fastforward(){
+    player.send Ctrl+Right
+}
+
+player.tinybackwardjump(){
+    player.send Shift+Left
+}
+
+player.tinyforwardjump(){
+    player.send Shift+Right
+}
+
+player.shortbackwardjump(){
+    player.send Alt+Left
+}
+
+player.shortforwardjump(){
+    player.send Alt+Right
+}
+
+player.mediupbackwardjump(){
+    player.send Ctrl+Left
+}
+
+player.mediumforwardjump(){
+    player.send Ctrl+Right
+}
+
+player.hugebackwardjump(){
+    player.send Ctrl+Alt+Left
+}
+
+player.hugeforwardjump(){
+    player.send Ctrl+Alt+Right
+}
+
+player.volume.up(){
+    player.send Ctrl+Up
+}
+player.volume.down(){
+    player.send Ctrl+Down
+}
+player.volume.mute(){
+    player.send m
+}
+
+player.aspect(){
+    player.send a
+}
+player.fullscreen(){
+    player.send f
+}
+player.position(){
+    player.send t
+}
+
+player(){
+    cmd pidof -x $check || cmd $check $@ &
+    while ! cmd pidof $check; do
+        sleep .2
+    done
+    $check $@
+}
+
+player.start(){
+    player
+}
+
+player.send(){
+    [ -n "$1" ] || return 1
+    cmd pidof $check || return 1
+    cmd xdotool  windowactivate `player.window` key $@ 
+}
+
+player.quit(){
+    cmd killall $check
+}
+
+player.window(){
+    cmd xdotool search --name "VLC" | tail -1
+}
+
+player.window.show(){
+    cdm xdotool windowactivate `player.window`
+}
+
+player.window.focus(){
+    cdm player.window.show
+}
+
+player.window.minimize(){
+    cmd xdotool windowminimize `player.window`
+}
+
+player.window.kill(){
+    cmd xdotool windowkill `player.window`
+}
+
+
+player.playlist.randomize(){
+    player.send r
+}
+
+player.playlist.empty(){
+    player.send Ctrl+w
+}
+
+player.playlist.loop(){
+    player.send l
+}

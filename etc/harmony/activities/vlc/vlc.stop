@@ -1,0 +1,2 @@
+. utils
+cmd killall -9 vlc

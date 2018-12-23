@@ -1,0 +1,7 @@
+#!/bin/bash
+# Vlc controls selector based on mode in vlc.conf
+
+. vlc.conf
+
+[ -f "vlc.controls.$mode" ] && . vlc.controls.$mode
+

@@ -4,18 +4,13 @@
 # or to create macros with xdotool
 
 
+
+
+
 case "$1" in
-    RECORD)
-        echo "rec"
-    ;;
-    2|3)
-        echo "case 2 or 3"
-    ;;
-    *)
-       # errorlevel is used to redirect the key to <main>
-       exit 1
+    EXIT|F13|F14)
+        exit 1
     ;;
 esac
 
-
-echo "kodi: $1"
+exit 0

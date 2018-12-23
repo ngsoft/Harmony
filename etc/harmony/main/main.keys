@@ -5,13 +5,159 @@
 . utils
 
 case "$1" in
+    HOME)
+        xdotool key super
+    ;;
+    CONTEXT)
+        xdotool key Menu
+    ;;
+    UP)
+        xdotool key Up
+    ;;
+    DOWN)
+        xdotool key Down
+    ;;
+    LEFT)
+        xdotool key Left
+    ;;
+    RIGHT)
+        xdotool key Right
+    ;;
+    SELECT)
+        xdotool key Return
+    ;;
+    PAGEUP)
+        xdotool key XF86Forward
+    ;;
+    PAGEDOWN|BACK)
+        xdotool key XF86Back
+    ;;
+
+esac
+
+
+
+case "$1" in
+    # Basic Actions
     EXIT)
         cmd killall alarm-clock-applet
         harmony stop
+    ;;
+    VOLUME+)
+        xdotool key XF86AudioRaiseVolume 
+    ;;
+    VOLUME-)
+        xdotool key XF86AudioLowerVolume
+    ;;
+    MUTE)
+        xdotool key XF86AudioMute 
+    ;;
+    PLAYPAUSE)
+        xdotool key XF86AudioPlay
+    ;;
+    PAUSE)
+        xdotool key XF86AudioPause
+    ;;
+    
+    REWIND)
+        xdotool key XF86AudioRewind
+    ;;
+    FASTFORWARD)
+        xdotool key XF86AudioForward
+    ;;
+    STOP)
+        xdotool key XF86AudioStop
+    ;;
+    PREVIOUS)
+        xdotool key XF86AudioPrev 
+    ;;
+    NEXT)
+        xdotool key XF86AudioNext
+    ;;
 
+
+    # Custom Actions
+    F1)
+        
+    ;;
+    F2)
+        
+    ;;
+    F3)
+        
+    ;;
+    F4)
+        
+    ;;
+    F5)
+        
+    ;;
+    F6)
+        
+    ;;
+    F7)
+        
+    ;;
+    F8)
+        
+    ;;
+    F9)
+        
+    ;;
+    F10)
+        
+    ;;
+    F11)
+        
+    ;;
+    F12)
+        
+    ;;
+    F13)
+        
+    ;;
+    F14)
+        
+    ;;
+    F15)
+        
+    ;;
+    F16)
+        
+    ;;
+    F17)
+        
+    ;;
+    F18)
+        
+    ;;
+    F19)
+        
+    ;;
+    F20)
+        
+    ;;
+    F21)
+        
+    ;;
+    F22)
+        
+    ;;
+    F23)
+        
+    ;;
+    F24)
+        
     ;;
     RED)
         harmony start clementine
+    ;;
+    
+    GREEN)
+        
+    ;;
+    YELLOW)
+        harmony start vlc
     ;;
     BLUE)
         harmony start kodi
@@ -21,5 +167,4 @@ case "$1" in
     ;;
 esac
 
-
-echo $1
+echo $1 >&2

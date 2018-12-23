@@ -57,6 +57,7 @@ case "$1" in
         rm /tmp/alarm.lock
     ;;
     WWW)
+        #xdotool key XF86WWW 
         . www.key
     ;;
 esac
