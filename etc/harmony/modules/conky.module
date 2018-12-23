@@ -1,0 +1,15 @@
+#!/bin/bash
+# Clock display on the desktop
+# Auto restarts on quit
+
+which conky > /dev/null 2>&1 || exit
+
+
+conky.start(){
+    local cfg="$modules/conky.conf"
+    [ -r $cfg ] || return 1
+    conky -c $cfg >/dev/null 2>&1 &
+    sleep 2
+}
+
+pidof -x conky > /dev/null 2>&1 || conky.start

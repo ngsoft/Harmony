@@ -2,9 +2,13 @@
 # Receive all the inputs from LIRC
 # and performs custom action for each keystroke
 
+. utils
+
 case "$1" in
     EXIT)
+        cmd killall alarm-clock-applet
         harmony stop
+
     ;;
     RED)
         harmony start clementine

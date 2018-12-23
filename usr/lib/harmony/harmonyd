@@ -9,7 +9,7 @@
 
 if [ "$HARMONY_REAL_DAEMON" != "1" ]; then
     export HARMONY_REAL_DAEMON=1
-    ${BASH_SOURCE[0]} #> /dev/null &
+    ${BASH_SOURCE[0]} & #> /dev/null &
     exit 0
 fi
 
@@ -71,7 +71,8 @@ run_modules(){
     local module
     cmd pushd $modules
     for module in $modules/*.module; do
-        cmd bash $module
+        #cmd bash $module
+        bash $module
     done
     cmd popd
     for module in $activities/*/*.module; do

@@ -43,7 +43,18 @@ case "$1" in
     ALARM)
         # Toggle on/off alarm clock, and stops running alarms
         # Settings are stored in /tmp, so forgotten after reboot
-        noop
+        [ -e /tmp/alarm.lock ] && exit
+        touch /tmp/alarm.lock
+        if [ -e /tmp/alarm.disable ]; then
+            notify "Alarm ON" "alarm-clock-applet"
+            cmd rm /tmp/alarm.disable
+        else 
+            notify "Alarm OFF" "alarm-clock-applet"
+            cmd touch /tmp/alarm.disable
+        fi
+        cmd killall alarm-clock-applet
+        sleep 3
+        rm /tmp/alarm.lock
     ;;
     WWW)
         . www.key

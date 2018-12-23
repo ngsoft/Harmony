@@ -1,0 +1,8 @@
+#!/bin/bash
+# Manages alarm-clock-applet
+# Auto restarts on quit
+
+[ -e /tmp/alarm.disable ] && exit
+which alarm-clock-applet > /dev/null 2>&1 || exit
+pidof -x alarm-clock-applet > /dev/null 2>&1 || alarm-clock-applet --hidden &
+sleep 2

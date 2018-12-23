@@ -19,8 +19,7 @@ get_status(){
     flircstatus=$(flirc_util sku 2> /dev/null)
     echo $flircstatus | grep "disconnected" > /dev/null 2>&1 
     [ $? == 0 ] && return 1
-    echo $flircstatus | grep "flirc" > /dev/null 2>&1 
-    [ $? != 0 ] && return 2
+    echo $flircstatus | grep "flirc" > /dev/null 2>&1 || return 2
     return 0
 }
 
