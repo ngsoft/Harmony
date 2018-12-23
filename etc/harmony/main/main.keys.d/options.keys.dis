@@ -1,0 +1,32 @@
+#!/bin/bash
+
+case "$1" in
+    HOME)
+        xdotool key super
+    ;;
+    CONTEXT)
+        xdotool key Menu
+    ;;
+    UP)
+        xdotool key Up
+    ;;
+    DOWN)
+        xdotool key Down
+    ;;
+    LEFT)
+        xdotool key Left
+    ;;
+    RIGHT)
+        xdotool key Right
+    ;;
+    SELECT)
+        xdotool key Return
+    ;;
+    PAGEUP)
+        xdotool key XF86Forward
+    ;;
+    PAGEDOWN|BACK)
+        xdotool key XF86Back
+    ;;
+
+esac

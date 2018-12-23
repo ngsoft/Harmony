@@ -1,0 +1,41 @@
+#!/bin/bash
+
+
+case "$1" in
+    # Basic Actions
+    EXIT)
+        cmd killall alarm-clock-applet
+        harmony stop
+    ;;
+    VOLUME+)
+        xdotool key XF86AudioRaiseVolume 
+    ;;
+    VOLUME-)
+        xdotool key XF86AudioLowerVolume
+    ;;
+    MUTE)
+        xdotool key XF86AudioMute 
+    ;;
+    PLAYPAUSE)
+        xdotool key XF86AudioPlay
+    ;;
+    PAUSE)
+        xdotool key XF86AudioPause
+    ;;
+    
+    REWIND)
+        xdotool key XF86AudioRewind
+    ;;
+    FASTFORWARD)
+        xdotool key XF86AudioForward
+    ;;
+    STOP)
+        xdotool key XF86AudioStop
+    ;;
+    PREVIOUS)
+        xdotool key XF86AudioPrev 
+    ;;
+    NEXT)
+        xdotool key XF86AudioNext
+    ;;
+esac
