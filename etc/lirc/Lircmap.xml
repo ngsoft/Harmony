@@ -33,16 +33,7 @@
         <F22>F22</F22>
         <F23>F23</F23>
         <F24>F24</F24>
-        <playlist>PLAYLIST</playlist>
-        <queueadd>QUEUEADD</queueadd>
-        <moveup>MOVEUP</moveup>
-        <movedown>MOVEDOWN</movedown>
-        <favourites>FAVOURITES</favourites>
-        <togglewatched>TOGGLEWATCHED</togglewatched>
-        <fullscreen>FULLSCREEN</fullscreen>
-        <home>HOME</home>
-        <addons>ADDONS</addons>
-        <settings>SETTINGS</settings>
+        <subtitles>SUBTITLES</subtitles>
         <menu>MENU</menu>
         <pageup>PAGEUP</pageup>
         <pagedown>PAGEDOWN</pagedown>
@@ -72,5 +63,7 @@
         <eight>8</eight>
         <nine>9</nine>
         <zero>0</zero>
+        <clear>CLEAR</clear>
+        <enter>ENTER</enter>
     </remote>
 </lircmap>
